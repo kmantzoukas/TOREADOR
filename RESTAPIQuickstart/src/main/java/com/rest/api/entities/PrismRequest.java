@@ -5,6 +5,8 @@ import java.sql.Timestamp;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
@@ -29,7 +31,8 @@ public class PrismRequest implements Serializable{
 	@Column(name="created", nullable=false)
 	private Timestamp created;
 	@Column(name="status", nullable=false)
-	private String status;
+	@Enumerated(EnumType.STRING)
+	private Status status;
 	
 	@ManyToOne(optional = false, fetch=FetchType.EAGER)
 	@JoinColumn(name = "user")
@@ -54,10 +57,10 @@ public class PrismRequest implements Serializable{
 	public void setCreated(Timestamp created) {
 		this.created = created;
 	}
-	public String getStatus() {
+	public Status getStatus() {
 		return status;
 	}
-	public void setStatus(String status) {
+	public void setStatus(Status status) {
 		this.status = status;
 	}
 	
