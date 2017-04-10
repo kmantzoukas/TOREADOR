@@ -1,11 +1,14 @@
 package uk.ac.city;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import javax.sql.DataSource;
 
+import org.apache.log4j.Logger;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
@@ -19,36 +22,88 @@ import org.springframework.context.annotation.PropertySource;
 @PropertySource("classpath:db.properties")
 @ConfigurationProperties(prefix = "db")
 public class Main {
-	
+
+	final static Logger log = Logger.getLogger(Main.class);
+
 	private String url;
 	private String username;
 	private String password;
 	private String driver;
-	
+
 	public static void main(String[] args) throws InterruptedException {
-		
+
 		ApplicationContext ctx = SpringApplication.run(Main.class, args);
-		final PrismRequestRepository repostiory = ctx.getBean(PrismRequestRepository.class);
-		
-		ScheduledExecutorService exec = Executors.newSingleThreadScheduledExecutor();
+		final PrismRequestRepository repository = ctx
+				.getBean(PrismRequestRepository.class);
+
+		ScheduledExecutorService exec = Executors
+				.newSingleThreadScheduledExecutor();
+
 		exec.scheduleAtFixedRate(new Runnable() {
-		  @Override
-		  public void run() {
-		    System.out.println(repostiory.findById(1L));
-		  }
+			@Override
+			public void run() {
+				/*
+				 * Fetch from the database all the prism requests that have been
+				 * created and haven't been yet processed
+				 */
+				List<PrismRequest> requests = repository
+						.findByStatus(Status.CREATED);
+
+				for (final PrismRequest request : requests) {
+					/*
+					 * Set the status of the request from CREATED to PROCESSING
+					 * and store it to the database
+					 */
+					request.setStatus(Status.PROCESSING);
+					repository.save(request);
+					/*
+					 * Log the fact that the request's status has changed
+					 */
+					log.info("Prism request has been read from the database " + request);
+
+					final ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/c",
+							"dir", "c:\\");
+				
+					new Thread() {
+						public void run() {
+							try {
+								Process p = pb.start();
+								try {
+									int result = p.waitFor();
+									/*
+									 * 0 indicates successful execution of the process
+									 */
+									if(result == 0){
+										request.setStatus(Status.COMPLETED);
+										repository.save(request);
+										log.info("Prism request with id " + request.getId() + " has been processed successfully.");
+									}else{
+										log.error("Prism request with id " + request.getId() + " has not been processed successfully.");
+									}
+									
+								} catch (InterruptedException e) {
+									request.setStatus(Status.ERROR);
+									repository.save(request);
+									log.error(e.getMessage());
+								}
+								
+							} catch (IOException e) {
+								request.setStatus(Status.ERROR);
+								repository.save(request);
+								log.error(e.getMessage());
+							}
+						}
+					}.start();
+				}
+			}
 		}, 0, 2, TimeUnit.SECONDS);
 	}
 
 	@Bean
 	@Primary
 	public DataSource dataSource() {
-		return DataSourceBuilder
-				.create()
-				.username(username)
-				.password(password)
-				.url(url)
-				.driverClassName(driver)
-				.build();
+		return DataSourceBuilder.create().username(username).password(password)
+				.url(url).driverClassName(driver).build();
 	}
 
 	public String getUrl() {
