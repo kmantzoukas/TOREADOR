@@ -7,7 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.rest.api.entities.PrismRequest;
@@ -21,8 +23,8 @@ public class PrismRequestRESTController{
 	@Autowired
 	PrismRequestRepository repository;
 	
-	@RequestMapping("/rest/api/requests/prism")
-	public ResponseEntity<?> getAllPatients() {
+	@RequestMapping(value = "/rest/api/requests/prism", method = RequestMethod.GET)
+	public ResponseEntity<?> getAllPrismRequests() {
 		
 		List<PrismRequest> requests = null;
 		
@@ -37,7 +39,21 @@ public class PrismRequestRESTController{
 		}
 	}
 	
-	@RequestMapping("/rest/api/requests/prism/{id}")
+	@RequestMapping(value = "/rest/api/requests/prism", method = RequestMethod.POST)
+	public ResponseEntity<?> createPrismRequest(@RequestBody PrismRequest request) {
+		
+		try {
+			repository.save(request);
+			log.info("Request save successully " + request);
+			return new ResponseEntity<PrismRequest>(request,HttpStatus.OK);
+			
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	@RequestMapping(value = "/rest/api/requests/prism/{id}", method = RequestMethod.GET)
 	public ResponseEntity<?> getPatientById(@PathVariable Long id) {
 		
 		PrismRequest request = null;
