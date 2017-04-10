@@ -70,4 +70,11 @@ public class PrismRequest implements Serializable{
 	public void setUser(User user) {
 		this.user = user;
 	}
+	
+	@Override
+	public String toString() {
+		return String
+				.format("PrismRequest [id=%s, output=%s, created=%s, status=%s, user=%s]",
+						id, output, created, status, user);
+	}
 }
