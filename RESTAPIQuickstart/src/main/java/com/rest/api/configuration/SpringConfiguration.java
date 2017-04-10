@@ -49,7 +49,7 @@ public class SpringConfiguration {
 
 		HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
 		vendorAdapter.setDatabase(Database.MYSQL);
-		vendorAdapter.setShowSql(Boolean.TRUE);
+		vendorAdapter.setShowSql(Boolean.FALSE);
 
 		LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
 		factory.setPackagesToScan(new String[] { "com.rest.api.entities" });
