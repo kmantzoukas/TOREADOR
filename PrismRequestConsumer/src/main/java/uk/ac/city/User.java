@@ -72,4 +72,11 @@ public class User implements Serializable{
 	public void setPrismRequests(List<PrismRequest> prismRequests) {
 		this.prismRequests = prismRequests;
 	}
+	@Override
+	public String toString() {
+		return String
+				.format("User [id=%s, name=%s, surname=%s, username=%s]",
+						id, name, surname, username);
+	}
+	
 }
