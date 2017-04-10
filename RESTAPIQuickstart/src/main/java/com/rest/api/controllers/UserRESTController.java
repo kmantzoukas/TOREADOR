@@ -42,7 +42,7 @@ public class UserRESTController {
 			/*
 			 * Log the fetching action
 			 */
-			log.info("Fetching the list of all users. Total number of users fetched is " + users.size());
+			log.info("Fetching list of all users. Total number of users fetched is " + users.size());
 			/*
 			 * Return the list of users as part of the HTTP response
 			 */
@@ -78,7 +78,7 @@ public class UserRESTController {
 			/*
 			 * Log the fetching action
 			 */
-			log.info("Fetching user " + user.toString());
+			log.info("Fetching " + user.toString());
 			/*
 			 * Return user as part of the HTTP response
 			 */
