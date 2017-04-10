@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.rest.api.entities.User;
@@ -26,7 +27,7 @@ public class UserRESTController {
 	/*
 	 * This method returns a list of all the users stored in the database
 	 */
-	@RequestMapping("/rest/api/users")
+	@RequestMapping(value= "/rest/api/users", method = RequestMethod.GET)
 	public ResponseEntity<?> getAllPatients() {
 		
 		/*
@@ -62,7 +63,7 @@ public class UserRESTController {
 	/*
 	 * This method returns a user with the specified id that is stored in the database
 	 */
-	@RequestMapping("/rest/api/users/{id}")
+	@RequestMapping(value = "/rest/api/users/{id}", method = RequestMethod.GET)
 	public ResponseEntity<?> getPatientById(@PathVariable Long id) {
 		
 		/*
