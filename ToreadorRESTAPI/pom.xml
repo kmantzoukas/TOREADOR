@@ -96,7 +96,7 @@
 				<artifactId>tomcat7-maven-plugin</artifactId>
 				<version>2.1</version>
 				<configuration>
-					<path>/</path>
+					<path>/toreador</path>
 				</configuration>
 			</plugin>
 			<plugin>
