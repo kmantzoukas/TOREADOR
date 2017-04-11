@@ -28,34 +28,16 @@ public class UserRESTController {
 	 * This method returns a list of all the users stored in the database
 	 */
 	@RequestMapping(value= "/rest/api/users", method = RequestMethod.GET)
-	public ResponseEntity<?> getAllPatients() {
+	public ResponseEntity<?> getAllUsers() {
 		
-		/*
-		 * Initialise the list of users to NULL
-		 */
 		List<User> users = null;
 		
 		try {
-			/*
-			 * Fetch the list of all the users from the database
-			 */
 			users = (List<User>) repository.findAll();
-			/*
-			 * Log the fetching action
-			 */
 			log.info("Fetching list of all users. Total number of users fetched is " + users.size());
-			/*
-			 * Return the list of users as part of the HTTP response
-			 */
 			return new ResponseEntity<List<User>>(users,HttpStatus.OK);
 		} catch (Exception e) {
-			/*
-			 * Log the error as it happens
-			 */
 			log.error(e.getMessage());
-			/*
-			 * Return a 500 HTTP internal server error to the caller
-			 */
 			return new ResponseEntity<List<User>>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -64,34 +46,16 @@ public class UserRESTController {
 	 * This method returns a user with the specified id that is stored in the database
 	 */
 	@RequestMapping(value = "/rest/api/users/{id}", method = RequestMethod.GET)
-	public ResponseEntity<?> getPatientById(@PathVariable Long id) {
+	public ResponseEntity<?> getUserById(@PathVariable Long id) {
 		
-		/*
-		 * Initialise the user to NULL
-		 */
 		User user = null;
 		
 		try {
-			/*
-			 * Fetch the user with the specified id from the database
-			 */
 			user = repository.findById(id);
-			/*
-			 * Log the fetching action
-			 */
 			log.info("Fetching " + user.toString());
-			/*
-			 * Return user as part of the HTTP response
-			 */
 			return new ResponseEntity<User>(user,HttpStatus.OK);
 		} catch (Exception e) {
-			/*
-			 * Log the error as it happens
-			 */
 			log.error(e.getMessage());
-			/*
-			 * Return a 500 HTTP internal server error to the caller
-			 */
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}

@@ -23,6 +23,9 @@ public class PrismRequestRESTController{
 	@Autowired
 	PrismRequestRepository repository;
 	
+	/*
+	 * This method returns a list of all the prism requests stored in the database
+	 */
 	@RequestMapping(value = "/rest/api/requests/prism", method = RequestMethod.GET)
 	public ResponseEntity<?> getAllPrismRequests() {
 		
@@ -39,12 +42,15 @@ public class PrismRequestRESTController{
 		}
 	}
 	
+	/*
+	 * This method creates a new prism request and stores it in the database
+	 */
 	@RequestMapping(value = "/rest/api/requests/prism", method = RequestMethod.POST)
 	public ResponseEntity<?> createPrismRequest(@RequestBody PrismRequest request) {
 		
 		try {
 			repository.save(request);
-			log.info("Request save successully " + request);
+			log.info("Request saved successully " + request);
 			return new ResponseEntity<PrismRequest>(request,HttpStatus.OK);
 			
 		} catch (Exception e) {
@@ -53,8 +59,11 @@ public class PrismRequestRESTController{
 		}
 	}
 	
+	/*
+	 * This method returns a prism request with the specified id that is stored in the database
+	 */
 	@RequestMapping(value = "/rest/api/requests/prism/{id}", method = RequestMethod.GET)
-	public ResponseEntity<?> getPatientById(@PathVariable Long id) {
+	public ResponseEntity<?> getPrismRequestById(@PathVariable Long id) {
 		
 		PrismRequest request = null;
 		
