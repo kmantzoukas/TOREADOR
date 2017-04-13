@@ -33,10 +33,6 @@ public class UserRESTController {
 	 * This method returns a list of all the users stored in the database
 	 */
 	@ApiOperation(value = "Return a list of all the users in the database", nickname = "getAllUsers")
-	@ApiResponses({
-	    @ApiResponse(code =  404, message ="Not found"),
-	    @ApiResponse(code =  400, message ="Invalid input")
-	})
 	@RequestMapping(value= "/rest/api/users", method = RequestMethod.GET, produces = "application/json")
 	public ResponseEntity<List<User>> getAllUsers() {
 		
@@ -44,7 +40,7 @@ public class UserRESTController {
 		
 		try {
 			users = (List<User>) repository.findAll();
-			log.info("Fetching list of all users. Total number of users fetched is " + users.size());
+			log.info("Fetched all users. Total number of users fetched is " + users.size());
 			return new ResponseEntity<List<User>>(users,HttpStatus.OK);
 		} catch (Exception e) {
 			log.error(e.getMessage());
@@ -60,7 +56,7 @@ public class UserRESTController {
 			nickname = "getUserById",
 			response = User.class)
 	@ApiResponses({
-	    @ApiResponse(code =  404, message ="The user with the specified id does was not found in the databse"),
+	    @ApiResponse(code =  404, message ="The user with the specified id was not found in the databse"),
 	    @ApiResponse(code =  400, message ="The user id provided is not in a valid format")
 	})
 	@RequestMapping(value = "/rest/api/users/{id}", method = RequestMethod.GET, produces = "application/json")
