@@ -32,7 +32,7 @@ public class User implements Serializable{
 	@Column(name="password", nullable=false)
 	private String password;
 	
-	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch=FetchType.EAGER)
+	@OneToMany(mappedBy = "user", fetch=FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
 	private List<PrismRequest> prismRequests = new ArrayList<PrismRequest>();
 	
 	public Long getId() {
@@ -75,8 +75,7 @@ public class User implements Serializable{
 	@Override
 	public String toString() {
 		return String
-				.format("User [id=%s, name=%s, surname=%s, username=%s]",
-						id, name, surname, username);
+				.format("User [id=%s, name=%s, surname=%s, username=%s, password=%s, prismRequests=%s]",
+						id, name, surname, username, password, prismRequests);
 	}
-	
 }
