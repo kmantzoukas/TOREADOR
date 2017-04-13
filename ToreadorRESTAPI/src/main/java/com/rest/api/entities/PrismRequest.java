@@ -88,6 +88,18 @@ public class PrismRequest implements Serializable{
 		this.user = user;
 	}
 	
+	public String getModel() {
+		return model;
+	}
+	public void setModel(String model) {
+		this.model = model;
+	}
+	public String getProperties() {
+		return properties;
+	}
+	public void setProperties(String properties) {
+		this.properties = properties;
+	}
 	@Override
 	public String toString() {
 		return String
