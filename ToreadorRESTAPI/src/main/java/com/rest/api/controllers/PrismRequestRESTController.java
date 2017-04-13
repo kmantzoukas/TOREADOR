@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.rest.api.entities.PrismRequest;
-import com.rest.api.entities.User;
 import com.rest.api.jpa.repositories.PrismRequestRepository;
 
 @Api(tags= "Prism request resource")
@@ -39,7 +38,7 @@ public class PrismRequestRESTController{
 	    @ApiResponse(code =  400, message ="Invalid input")
 	})
 	@RequestMapping(value = "/rest/api/requests/prism", method = RequestMethod.GET, produces = "application/json")
-	public ResponseEntity<?> getAllPrismRequests() {
+	public ResponseEntity<List<PrismRequest>> getAllPrismRequests() {
 		
 		List<PrismRequest> requests = null;
 		
@@ -92,7 +91,7 @@ public class PrismRequestRESTController{
 	    @ApiResponse(code =  400, message ="The user id provided is not in a valid format")
 	})
 	@RequestMapping(value = "/rest/api/requests/prism/{id}", method = RequestMethod.GET, produces = "application/json")
-	public ResponseEntity<?> getPrismRequestById(@PathVariable Long id) {
+	public ResponseEntity<PrismRequest> getPrismRequestById(@PathVariable Long id) {
 		
 		PrismRequest request = null;
 		
