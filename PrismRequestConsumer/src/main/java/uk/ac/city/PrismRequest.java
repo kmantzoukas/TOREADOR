@@ -14,7 +14,6 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
-
 @Entity
 @Table(name = "prism_requests", catalog = "toreador")
 public class PrismRequest implements Serializable{
@@ -25,10 +24,19 @@ public class PrismRequest implements Serializable{
 	@GeneratedValue
 	@Column(name="id", unique=true, nullable=false)
 	private Long id;
-	@Column(name="output_file", nullable=false)
+	
+	@Column(name="model", nullable=false)
+	private String model;
+	
+	@Column(name="properties", nullable=false)
+	private String properties;
+	
+	@Column(name="output", nullable=false)
 	private String output;
+	
 	@Column(name="created", nullable=false)
 	private Timestamp created;
+	
 	@Column(name="status", nullable=false)
 	@Enumerated(EnumType.STRING)
 	private Status status;
@@ -68,11 +76,23 @@ public class PrismRequest implements Serializable{
 	public void setUser(User user) {
 		this.user = user;
 	}
+	
+	public String getModel() {
+		return model;
+	}
+	public void setModel(String model) {
+		this.model = model;
+	}
+	public String getProperties() {
+		return properties;
+	}
+	public void setProperties(String properties) {
+		this.properties = properties;
+	}
 	@Override
 	public String toString() {
 		return String
 				.format("PrismRequest [id=%s, output=%s, created=%s, status=%s, user=%s]",
 						id, output, created, status, user.getId());
 	}
-	
 }
