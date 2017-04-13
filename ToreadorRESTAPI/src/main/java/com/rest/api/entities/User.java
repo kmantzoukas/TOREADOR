@@ -25,7 +25,7 @@ public class User implements Serializable{
 	
 	private static final long serialVersionUID = 7868533363937836866L;
 	
-	@ApiModelProperty(readOnly = true, required = false)
+	@ApiModelProperty(example = "2", readOnly = true, required = false)
 	@Id
 	@GeneratedValue
 	@Column(name="id", unique=true, nullable=false)
