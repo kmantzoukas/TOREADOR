@@ -19,7 +19,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.PropertySource;
 
 @SpringBootApplication
-@PropertySource("classpath:db.properties")
+@PropertySource(value = {"classpath:db.properties", "classpath:prism.properties"})
 @ConfigurationProperties(prefix = "db")
 public class Main {
 
@@ -29,6 +29,8 @@ public class Main {
 	private String username;
 	private String password;
 	private String driver;
+	private static String basedir;
+	private static String binary;
 
 	public static void main(String[] args) throws InterruptedException {
 
@@ -60,9 +62,18 @@ public class Main {
 					 * Log the fact that the request's status has changed
 					 */
 					log.info("Prism request has been read from the database " + request);
-
-					final ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/c",
-							"dir", "c:\\");
+					
+					final ProcessBuilder pb = new ProcessBuilder(
+							binary,
+							"-javamaxmem",
+							"10g",
+							basedir + "/models/sample1-pta-simple.prism",
+							basedir +"/properties/paper.props",
+							"-prop",
+							"1",
+							"-exportresults",
+							"~/prism/output/output.txt"
+							);
 				
 					new Thread() {
 						public void run() {
@@ -136,6 +147,22 @@ public class Main {
 
 	public void setDriver(String driver) {
 		this.driver = driver;
+	}
+
+	public String getBasedir() {
+		return basedir;
+	}
+
+	public void setBasedir(String basedir) {
+		this.basedir = basedir;
+	}
+
+	public static String getBinary() {
+		return binary;
+	}
+
+	public static void setBinary(String binary) {
+		Main.binary = binary;
 	}
 
 }
