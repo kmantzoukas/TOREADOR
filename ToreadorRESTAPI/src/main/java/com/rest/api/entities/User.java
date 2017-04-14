@@ -93,7 +93,7 @@ public class User implements Serializable{
 	@Override
 	public String toString() {
 		return String
-				.format("User [id=%s, name=%s, surname=%s, username=%s, password=%s, prismRequests=%s]",
-						id, name, surname, username, password, prismRequests);
+				.format("User [id=%s, name=%s, surname=%s, username=%s, prismRequests=%s]",
+						id, name, surname, username, prismRequests);
 	}
 }
