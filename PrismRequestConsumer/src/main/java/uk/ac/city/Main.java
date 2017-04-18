@@ -22,7 +22,6 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
 
 @SpringBootApplication
-@PropertySource(value = "classpath:*.properties")
 @PropertySources({
 	@PropertySource(value = "classpath:db.properties"), @PropertySource(value = "classpath:prism.properties")
 })
