@@ -3,6 +3,7 @@
 ### Installation
 
 __PrismRequestConsumer__ requires [Apache Maven](https://maven.apache.org/) v4+ to run.
+
 Ideally, you will also need to install [Git](https://git-scm.com/) to clone and build the project from the source.
 
 Clone the TOREADOR repository locally. To do so use the following command:
