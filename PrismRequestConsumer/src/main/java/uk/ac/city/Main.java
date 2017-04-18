@@ -80,6 +80,7 @@ public class Main {
 							try {
 								log.info(pb.command().toString());
 								Process p = pb.start();
+								pb.redirectErrorStream(false);
 								try {
 									int result = p.waitFor();
 									/*
@@ -96,7 +97,6 @@ public class Main {
 										log.error("Prism request with id "
 												+ request.getId()
 												+ " has not been processed successfully.");
-										
 										BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
 										StringBuilder builder = new StringBuilder();
 										String line = null;
