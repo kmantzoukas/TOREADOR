@@ -104,8 +104,10 @@ public class Main {
 											builder.append(line);
 											builder.append(System.getProperty("line.separator"));
 										}
-										
 										log.error(builder.toString());
+										request.setStatus(Status.ERROR);
+										repository.save(request);
+										
 									}
 
 								} catch (InterruptedException e) {
