@@ -67,8 +67,8 @@ public class Main {
 							binary,
 							"-javamaxmem",
 							"10g",
-							basedir + "/models/sample1-pta-simple.prism",
-							basedir +"/properties/paper.props",
+							Main.basedir + "/models/sample1-pta-simple.prism",
+							Main.basedir +"/properties/paper.props",
 							"-prop",
 							"1",
 							"-exportresults",
@@ -78,6 +78,7 @@ public class Main {
 					new Thread() {
 						public void run() {
 							try {
+								log.info(pb.command().toString());
 								Process p = pb.start();
 								try {
 									int result = p.waitFor();
