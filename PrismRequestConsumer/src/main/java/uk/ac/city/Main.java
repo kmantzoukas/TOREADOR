@@ -183,16 +183,16 @@ public class Main {
 		return basedir;
 	}
 
-	public void setBasedir(String basedir) {
-		Main.basedir = basedir;
+	public void setBasedir(String base) {
+		basedir = base;
 	}
 
 	public static String getBinary() {
 		return binary;
 	}
 
-	public static void setBinary(String binary) {
-		Main.binary = binary;
+	public static void setBinary(String bin) {
+		binary = bin;
 	}
 
 }
