@@ -21,8 +21,7 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.PropertySource;
 
 @SpringBootApplication
-@PropertySource(value = { "classpath:db.properties",
-		"classpath:prism.properties" })
+@PropertySource(value = { "classpath:db.properties","classpath:prism.properties" })
 @ConfigurationProperties(prefix = "db")
 public class Main {
 
@@ -64,16 +63,18 @@ public class Main {
 					/*
 					 * Log the fact that the request's status has changed
 					 */
-					log.info("Prism request has been read from the database "
-							+ request);
+					log.info(String.format("Prism request has been read from the database %s",request.toString()));
 
 					final ProcessBuilder pb = new ProcessBuilder(
-							"/home/abfc149/lib/prism/bin/prism", "-javamaxmem",
-							"10g", "/home/abfc149/prism"
-									+ "/models/sample1-pta-simple.prism",
-							"/home/abfc149/prism" + "/properties/paper.props",
-							"-prop", "1", "-exportresults",
-							"~/prism/output/output.txt");
+							binary, 
+							"-javamaxmem",
+							"10g", 
+							basedir + "/models/sample1-pta-simple.prism",
+							basedir + "/properties/paper.props",
+							"-prop", 
+							"1", 
+							"-exportresults",
+							basedir + "/prism/output/output.txt");
 
 					new Thread() {
 						public void run() {
@@ -90,13 +91,9 @@ public class Main {
 									if (result == 0) {
 										request.setStatus(Status.COMPLETED);
 										repository.save(request);
-										log.info("Prism request with id "
-												+ request.getId()
-												+ " has been processed successfully.");
+										log.info(String.format("Prism request with id %i has been processed successfully.", request.getId()));
 									} else {
-										log.error("Prism request with id "
-												+ request.getId()
-												+ " has not been processed successfully.");
+										log.error(String.format("Prism request with id %i has not been processed successfully.", request.getId())); 
 										BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
 										StringBuilder builder = new StringBuilder();
 										String line = null;
@@ -105,8 +102,14 @@ public class Main {
 											builder.append(System.getProperty("line.separator"));
 										}
 										log.error(builder.toString());
+										/*
+										 * Set the status of the request to ERROR and store it in the database
+										 */
 										request.setStatus(Status.ERROR);
 										repository.save(request);
+										/*
+										 * Destroy the process and every subprocess that has started
+										 */
 										p.destroyForcibly();
 										
 									}
@@ -173,7 +176,7 @@ public class Main {
 	}
 
 	public void setBasedir(String basedir) {
-		this.basedir = basedir;
+		Main.basedir = basedir;
 	}
 
 	public static String getBinary() {
