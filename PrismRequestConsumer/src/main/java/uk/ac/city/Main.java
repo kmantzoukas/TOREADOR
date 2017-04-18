@@ -64,11 +64,11 @@ public class Main {
 					log.info("Prism request has been read from the database " + request);
 					
 					final ProcessBuilder pb = new ProcessBuilder(
-							binary,
+							"/home/abfc149/lib/prism/bin/prism",
 							"-javamaxmem",
 							"10g",
-							Main.basedir + "/models/sample1-pta-simple.prism",
-							Main.basedir +"/properties/paper.props",
+							"/home/abfc149/prism" + "/models/sample1-pta-simple.prism",
+							"/home/abfc149/prism" +"/properties/paper.props",
 							"-prop",
 							"1",
 							"-exportresults",
