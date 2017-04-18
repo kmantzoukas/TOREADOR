@@ -25,9 +25,9 @@ import org.springframework.context.annotation.PropertySources;
 @PropertySources({
 	@PropertySource(value = "classpath:db.properties")
 })
-public class Main {
+public class PrismRequestConsumer {
 
-	final static Logger log = Logger.getLogger(Main.class);
+	final static Logger log = Logger.getLogger(PrismRequestConsumer.class);
 	
 	@Value("${db.url}")
 	private String url;
@@ -43,7 +43,7 @@ public class Main {
 
 	public static void main(String[] args) throws InterruptedException {
 
-		ApplicationContext ctx = SpringApplication.run(Main.class, args);
+		ApplicationContext ctx = SpringApplication.run(PrismRequestConsumer.class, args);
 		final PrismRequestRepository repository = ctx
 				.getBean(PrismRequestRepository.class);
 
