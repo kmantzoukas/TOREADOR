@@ -107,6 +107,7 @@ public class Main {
 										log.error(builder.toString());
 										request.setStatus(Status.ERROR);
 										repository.save(request);
+										p.destroyForcibly();
 										
 									}
 
