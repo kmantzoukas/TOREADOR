@@ -1,6 +1,8 @@
 package uk.ac.city;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -19,7 +21,8 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.PropertySource;
 
 @SpringBootApplication
-@PropertySource(value = {"classpath:db.properties", "classpath:prism.properties"})
+@PropertySource(value = { "classpath:db.properties",
+		"classpath:prism.properties" })
 @ConfigurationProperties(prefix = "db")
 public class Main {
 
@@ -61,20 +64,17 @@ public class Main {
 					/*
 					 * Log the fact that the request's status has changed
 					 */
-					log.info("Prism request has been read from the database " + request);
-					
+					log.info("Prism request has been read from the database "
+							+ request);
+
 					final ProcessBuilder pb = new ProcessBuilder(
-							"/home/abfc149/lib/prism/bin/prism",
-							"-javamaxmem",
-							"10g",
-							"/home/abfc149/prism" + "/models/sample1-pta-simple.prism",
-							"/home/abfc149/prism" +"/properties/paper.props",
-							"-prop",
-							"1",
-							"-exportresults",
-							"~/prism/output/output.txt"
-							);
-				
+							"/home/abfc149/lib/prism/bin/prism", "-javamaxmem",
+							"10g", "/home/abfc149/prism"
+									+ "/models/sample1-pta-simple.prism",
+							"/home/abfc149/prism" + "/properties/paper.props",
+							"-prop", "1", "-exportresults",
+							"~/prism/output/output.txt");
+
 					new Thread() {
 						public void run() {
 							try {
@@ -83,22 +83,37 @@ public class Main {
 								try {
 									int result = p.waitFor();
 									/*
-									 * 0 indicates successful execution of the process
+									 * 0 indicates successful execution of the
+									 * process
 									 */
-									if(result == 0){
+									if (result == 0) {
 										request.setStatus(Status.COMPLETED);
 										repository.save(request);
-										log.info("Prism request with id " + request.getId() + " has been processed successfully.");
-									}else{
-										log.error("Prism request with id " + request.getId() + " has not been processed successfully.");
+										log.info("Prism request with id "
+												+ request.getId()
+												+ " has been processed successfully.");
+									} else {
+										log.error("Prism request with id "
+												+ request.getId()
+												+ " has not been processed successfully.");
+										
+										BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+										StringBuilder builder = new StringBuilder();
+										String line = null;
+										while ((line = reader.readLine()) != null) {
+											builder.append(line);
+											builder.append(System.getProperty("line.separator"));
+										}
+										
+										log.error(builder.toString());
 									}
-									
+
 								} catch (InterruptedException e) {
 									request.setStatus(Status.ERROR);
 									repository.save(request);
 									log.error(e.getMessage());
 								}
-								
+
 							} catch (IOException e) {
 								request.setStatus(Status.ERROR);
 								repository.save(request);
