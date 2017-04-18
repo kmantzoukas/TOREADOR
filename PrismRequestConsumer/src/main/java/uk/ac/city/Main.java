@@ -191,7 +191,7 @@ public class Main {
 		return binary;
 	}
 
-	public static void setBinary(String bin) {
+	public void setBinary(String bin) {
 		binary = bin;
 	}
 
