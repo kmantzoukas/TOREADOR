@@ -23,7 +23,7 @@ import org.springframework.context.annotation.PropertySources;
 
 @SpringBootApplication
 @PropertySources({
-	@PropertySource(value = "classpath:db.properties"), @PropertySource(value = "classpath:prism.properties")
+	@PropertySource(value = "classpath:db.properties")
 })
 public class Main {
 
@@ -37,10 +37,9 @@ public class Main {
 	private String password;
 	@Value("${db.driver}")
 	private String driver;
-	@Value("${prism.basedir}")
-	private static String basedir;
-	@Value("${prism.binary}")
-	private static String binary;
+	
+	private static String basedir = "/home/abfc149/prism";
+	private static String binary = "/home/abfc149/lib/prism/bin/prism";
 
 	public static void main(String[] args) throws InterruptedException {
 
@@ -178,21 +177,4 @@ public class Main {
 	public void setDriver(String driver) {
 		this.driver = driver;
 	}
-
-	public String getBasedir() {
-		return basedir;
-	}
-
-	public void setBasedir(String base) {
-		basedir = base;
-	}
-
-	public static String getBinary() {
-		return binary;
-	}
-
-	public void setBinary(String bin) {
-		binary = bin;
-	}
-
 }
