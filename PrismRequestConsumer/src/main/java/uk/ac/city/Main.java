@@ -11,27 +11,36 @@ import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
 
 @SpringBootApplication
-@PropertySource(value = { "classpath:db.properties","classpath:prism.properties" })
-@ConfigurationProperties(prefix = "db")
+@PropertySource(value = "classpath:*.properties")
+@PropertySources({
+	@PropertySource(value = "classpath:db.properties"), @PropertySource(value = "classpath:prism.properties")
+})
 public class Main {
 
 	final static Logger log = Logger.getLogger(Main.class);
-
+	
+	@Value("${db.url}")
 	private String url;
+	@Value("${db.username}")
 	private String username;
+	@Value("${db.password}")
 	private String password;
+	@Value("${db.driver}")
 	private String driver;
+	@Value("${prism.basedir}")
 	private static String basedir;
+	@Value("${prism.binary}")
 	private static String binary;
 
 	public static void main(String[] args) throws InterruptedException {
