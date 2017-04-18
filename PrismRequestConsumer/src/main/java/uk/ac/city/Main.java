@@ -98,9 +98,9 @@ public class Main {
 									if (result == 0) {
 										request.setStatus(Status.COMPLETED);
 										repository.save(request);
-										log.info(String.format("Prism request with id %i has been processed successfully.", request.getId()));
+										log.info(String.format("Prism request with id %d has been processed successfully.", request.getId()));
 									} else {
-										log.error(String.format("Prism request with id %i has not been processed successfully.", request.getId())); 
+										log.error(String.format("Prism request with id %d has not been processed successfully.", request.getId())); 
 										BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
 										StringBuilder builder = new StringBuilder();
 										String line = null;
