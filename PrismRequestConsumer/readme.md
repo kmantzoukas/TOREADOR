@@ -1,8 +1,8 @@
-# Prism request consumer
+![TOREADOR logo](http://www.toreador-project.eu/wp-content/themes/acqualiofilizzata/images/logo-header.png)
 
 ### Installation
 
-__PrismRequestConsumer__ requires [Apache Maven](https://maven.apache.org/) v4+ to run.
+The __PrismRequestConsumer__ application requires [Apache Maven](https://maven.apache.org/) v4+ to run.
 
 Ideally, you will also need to install [Git](https://git-scm.com/) to clone and build the project from the source.
 
