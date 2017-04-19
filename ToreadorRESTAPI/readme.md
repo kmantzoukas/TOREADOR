@@ -33,13 +33,13 @@ $ mvn clean install tomcat7:run
 ```
 
 # Profiles
-For conveniency and ease of deployment, during development two separate Maven profiles under the names **soi-vn-test01@city** and **localhost** have been created.
-**soi-vn-test01@city** is used for the deployment on a Wildfly 8.2 installation at City's cluster and **localhost** is used for the deployment on a local installation for test, debug and development.
+For conveniency and ease of deployment, during development two separate Maven profiles under the names **soi-vm-test01@city** and **localhost** have been created.
+**soi-vm-test01@city** is used for the deployment on a Wildfly 8.2 installation at City's cluster and **localhost** is used for the deployment on a local installation for test, debug and development.
 
-  - Use the **soi-vn-test01@city** profile to deploy the services remotely
+  - Use the **soi-vm-test01@city** profile to deploy the services remotely
 ```sh
 $ cd TOREADOR/ToreadorRESTAPI
-$ mvn -P soi-vn-test01@city wildfly:deploy
+$ mvn -P soi-vm-test01@city wildfly:deploy
 ```
 
   - Use the **localhost** profile to deploy the services locally
