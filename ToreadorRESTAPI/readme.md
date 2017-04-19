@@ -11,7 +11,7 @@ Clone the TOREADOR repository locally. To do so use the following command:
 ```
 
 # REST API documentation
-A detailed view of the API can be found [here](http://10.207.1.102:8080/swagger-ui.html).
+A detailed view of the API can be found [here](http://10.207.1.102:8080/toreador/swagger-ui.html).
 The resources manipulated by the API are the following:
 
   - __User__ - A list with all the users of the system
