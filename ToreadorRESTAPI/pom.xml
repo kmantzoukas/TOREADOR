@@ -139,14 +139,14 @@
 					<version>2.4</version>
 					<configuration>
 						<warSourceDirectory>src/main/webapp</warSourceDirectory>
-						<warName>ToreadorRESTAPI</warName>
+						<warName>toreador</warName>
 						<failOnMissingWebXml>false</failOnMissingWebXml>
 					</configuration>
 				</plugin>
 			</plugins>
 		</pluginManagement>
 
-		<finalName>ToreadorRESTAPI</finalName>
+		<finalName>toreador</finalName>
 	</build>
 	<profiles>
 		<profile>
