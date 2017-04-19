@@ -25,7 +25,7 @@ $ cd TOREADOR/ToreadorRESTAPI
 $ mvn clean package
 ```
 
-# Deploy the project at an embedded Apache Tomcat 7
+# Deploy the project at an embedded [Apache Tomcat 7](http://tomcat.apache.org/maven-plugin-2.0/tomcat7-maven-plugin/)
 In order to deploy the project navigate to the project's directory and use Maven to deploy it.
 ```sh
 $ cd TOREADOR/ToreadorRESTAPI
@@ -33,10 +33,10 @@ $ mvn clean install tomcat7:run
 ```
 
 # Profiles
-For conviniency and ease of deployment, during development two separate Maven profiles under the names **soi-vn-test01@city** and **localhost** have been created.
+For conveniency and ease of deployment, during development two separate Maven profiles under the names **soi-vn-test01@city** and **localhost** have been created.
 **soi-vn-test01@city** is used for the deployment on a Wildfly 8.2 installation at City's cluster and **localhost** is used for the deployment on a local installation for test, debug and development.
 
-  - Use the **soi-vn-test01@city** profile to delpoy the services remotely
+  - Use the **soi-vn-test01@city** profile to deploy the services remotely
 ```sh
 $ cd TOREADOR/ToreadorRESTAPI
 $ mvn -P soi-vn-test01@city wildfly:deploy
