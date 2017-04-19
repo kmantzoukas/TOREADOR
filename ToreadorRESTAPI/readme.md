@@ -34,7 +34,7 @@ $ mvn clean install tomcat7:run
 
 # Profiles
 For conviniency and ease of deployment, during development two separate Maven profiles under the names **soi-vn-test01@city** and **localhost** have been created.
-**soi-vn-test01@city** is used for the deployment of the API on a Wildfly 8.2 installation at City's cluster and **localhost** for deployment at a local installation for test, debug and development.
+**soi-vn-test01@city** is used for the deployment on a Wildfly 8.2 installation at City's cluster and **localhost** is used for the deployment on a local installation for test, debug and development.
 
   - Use the **soi-vn-test01@city** profile to delpoy the services remotely
 ```sh
