@@ -1,6 +1,5 @@
 ![TOREADOR logo](http://www.toreador-project.eu/wp-content/themes/acqualiofilizzata/images/logo-header.png)
 
-# TOREADOR REST API
 The TOREADOR REST API is a collection of REST services that allows the execution of operations against the TOREADOR database. It enables the generation and coordinated execution of prism commands on prism models and prism properties.
 ## Installation
 The TOREADOR REST API requires Apache Maven v4+ to run.
