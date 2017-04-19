@@ -1,9 +1,9 @@
 ![TOREADOR logo](http://www.toreador-project.eu/wp-content/themes/acqualiofilizzata/images/logo-header.png)
 
-The TOREADOR REST API is a collection of REST services that allows the execution of operations against the TOREADOR database. It enables the generation and coordinated execution of prism commands on prism models and prism properties.
+The __TOREADOR REST API__ is a collection of REST services that allows the execution of operations against the TOREADOR database. It enables the generation and coordinated execution of prism commands on prism models and prism properties.
 ## Installation
-The TOREADOR REST API requires Apache Maven v4+ to run.
-Ideally, you will also need to install Git to clone and build the project from the source.
+The TOREADOR REST API requires [Apache Maven](https://maven.apache.org/) v4+ to run.
+Ideally, you will also need to install [Git](https://git-scm.com/) to clone and build the project from the source.
 
 Clone the TOREADOR repository locally. To do so use the following command:
 ```sh
