@@ -42,11 +42,11 @@ $ cd TOREADOR/ToreadorRESTAPI
 $ mvn -P soi-vn-test01@city wildfly:deploy
 ```
 
-  - Use the **localhost** profile to delpoy the services localy
+  - Use the **localhost** profile to deploy the services locally
 ```sh
 $ cd TOREADOR/ToreadorRESTAPI
 $ mvn -P localhost wildfly:deploy
 ```
-All the connection details, necessary for the deployment of the API such as IP addressses, usernames, password, etc. are included in the [pom.xml](https://github.com/kmantzoukas/TOREADOR/tree/master/ToreadorRESTAPI/pom.xml) file of the project in the profiles section. 
+All the connection details, necessary for the deployment of the API such as IP address, username, password, etc. are included in the [pom.xml](https://github.com/kmantzoukas/TOREADOR/tree/master/ToreadorRESTAPI/pom.xml) file of the project in the profiles section. 
 
 __IMPORTANT NOTE__: In order to perform any of the operations mentioned above, one needs to be connected at City's VPN at all times. In any other case all the IP addresses mentioned will be unreachable and the system will appear offline.
