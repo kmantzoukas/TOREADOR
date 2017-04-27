@@ -1,4 +1,4 @@
-package com.rest.api.configuration;
+package uk.ac.city.toreador.rest.api.configuration;
 
 import java.beans.PropertyVetoException;
 import java.sql.Timestamp;
@@ -32,8 +32,8 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
 
-@EnableJpaRepositories(basePackages = { "com.rest.api.jpa.repositories" })
-@ComponentScan(basePackages = { "com.rest.api", "com.rest.api.configuration" })
+@EnableJpaRepositories(basePackages = { "uk.ac.city.toreador.rest.api.jpa.repositories" })
+@ComponentScan(basePackages = { "uk.ac.city.toreador.rest.api" })
 @PropertySource({"classpath:db.properties", "classpath:swagger.api.properties"})
 @EnableWebMvc
 @EnableSwagger2
@@ -98,7 +98,7 @@ public class SpringConfiguration {
 		vendorAdapter.setShowSql(Boolean.FALSE);
 
 		LocalContainerEntityManagerFactoryBean factory = new LocalContainerEntityManagerFactoryBean();
-		factory.setPackagesToScan(new String[] { "com.rest.api.entities" });
+		factory.setPackagesToScan(new String[] { "uk.ac.city.toreador.rest.api.entities" });
 		factory.setDataSource(dataSourceBean());
 		factory.setJpaVendorAdapter(vendorAdapter);
 

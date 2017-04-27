@@ -1,4 +1,4 @@
-package com.rest.api.controllers;
+package uk.ac.city.toreador.rest.api.controllers;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -17,8 +17,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.rest.api.entities.PrismRequest;
-import com.rest.api.jpa.repositories.PrismRequestRepository;
+import uk.ac.city.toreador.rest.api.entities.PrismRequest;
+import uk.ac.city.toreador.rest.api.jpa.repositories.PrismRequestRepository;
 
 @Api(tags= "Prism request resource")
 @RestController

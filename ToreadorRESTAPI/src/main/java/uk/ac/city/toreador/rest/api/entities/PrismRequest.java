@@ -1,4 +1,4 @@
-package com.rest.api.entities;
+package uk.ac.city.toreador.rest.api.entities;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
