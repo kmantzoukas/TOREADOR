@@ -1,4 +1,4 @@
-package uk.ac.city;
+package uk.ac.city.toreador;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -20,6 +20,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
+
+import uk.ac.city.toreador.entities.Status;
 
 @SpringBootApplication
 @PropertySources({

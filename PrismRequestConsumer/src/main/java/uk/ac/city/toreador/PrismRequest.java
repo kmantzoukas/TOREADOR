@@ -1,4 +1,4 @@
-package uk.ac.city;
+package uk.ac.city.toreador;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
@@ -13,6 +13,9 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
+
+import uk.ac.city.toreador.entities.Status;
+import uk.ac.city.toreador.entities.User;
 
 @Entity
 @Table(name = "prism_requests", catalog = "toreador")

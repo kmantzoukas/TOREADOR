@@ -1,4 +1,4 @@
-package uk.ac.city;
+package uk.ac.city.toreador.entities;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -12,6 +12,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import uk.ac.city.toreador.PrismRequest;
 
 @Entity
 @Table(name = "users", catalog = "toreador")
