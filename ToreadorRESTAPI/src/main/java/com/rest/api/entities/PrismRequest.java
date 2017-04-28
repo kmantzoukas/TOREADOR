@@ -30,11 +30,11 @@ public class PrismRequest implements Serializable{
 	@Column(name="id", unique=true, nullable=false)
 	private Long id;
 	
-	@ApiModelProperty(example = "This is some test content of the prism model", required = true)
+	@ApiModelProperty(hidden = true, example = "This is some test content of the prism model", required = false)
 	@Column(name="model", nullable=false)
 	private String model;
 	
-	@ApiModelProperty(example = "This is some test content for the properties file", required = true)
+	@ApiModelProperty(hidden = true, example = "This is some test content for the properties file", required = false)
 	@Column(name="properties", nullable=false)
 	private String properties;
 	
