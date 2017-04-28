@@ -1,6 +1,8 @@
-package com.rest.api.configuration;
+package uk.ac.city.toreador.rest.api.configuration;
 
 import org.springframework.web.servlet.support.AbstractAnnotationConfigDispatcherServletInitializer;
+
+import uk.ac.city.toreador.rest.api.configuration.SpringWebConfiguration;
 
 public class WebInitializer extends AbstractAnnotationConfigDispatcherServletInitializer {
 	 

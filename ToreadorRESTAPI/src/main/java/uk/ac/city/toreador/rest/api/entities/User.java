@@ -1,4 +1,7 @@
-package uk.ac.city;
+package uk.ac.city.toreador.rest.api.entities;
+
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -13,26 +16,41 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+@ApiModel(value = "User", description = "An entity that represents a user.")
 @Entity
 @Table(name = "users", catalog = "toreador")
 public class User implements Serializable{
 	
 	private static final long serialVersionUID = 7868533363937836866L;
 	
+	@ApiModelProperty(example = "2", readOnly = true, required = false)
 	@Id
 	@GeneratedValue
 	@Column(name="id", unique=true, nullable=false)
 	private Long id;
+	
+	@ApiModelProperty(example = "John", readOnly = false, required = true)
 	@Column(name="name", nullable=false)
 	private String name;
+	
+	@ApiModelProperty(example = "Doe", readOnly = false, required = true)
 	@Column(name="surname", nullable=false)
 	private String surname;
+	
+	@ApiModelProperty(example = "jdoe", readOnly = false, required = true)
 	@Column(name="username", nullable=false)
 	private String username;
+
+	@ApiModelProperty(example = "secr3t", readOnly = false, required = true)
+	@JsonIgnore
 	@Column(name="password", nullable=false)
 	private String password;
 	
-	@OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch=FetchType.EAGER)
+	@ApiModelProperty(hidden = true)
+	@OneToMany(mappedBy = "user", fetch=FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+	@JsonIgnore
 	private List<PrismRequest> prismRequests = new ArrayList<PrismRequest>();
 	
 	public Long getId() {
@@ -75,8 +93,7 @@ public class User implements Serializable{
 	@Override
 	public String toString() {
 		return String
-				.format("User [id=%s, name=%s, surname=%s, username=%s]",
-						id, name, surname, username);
+				.format("User [id=%s, name=%s, surname=%s, username=%s, prismRequests=%s]",
+						id, name, surname, username, prismRequests);
 	}
-	
 }

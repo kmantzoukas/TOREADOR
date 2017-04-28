@@ -1,6 +1,8 @@
-package uk.ac.city;
+package uk.ac.city.toreador;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -9,30 +11,41 @@ import java.util.concurrent.TimeUnit;
 import javax.sql.DataSource;
 
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceBuilder;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.context.annotation.PropertySources;
+
+import uk.ac.city.toreador.entities.Status;
 
 @SpringBootApplication
-@PropertySource("classpath:db.properties")
-@ConfigurationProperties(prefix = "db")
-public class Main {
+@PropertySources({
+	@PropertySource(value = "classpath:db.properties")
+})
+public class PrismRequestConsumer {
 
-	final static Logger log = Logger.getLogger(Main.class);
-
+	final static Logger log = Logger.getLogger(PrismRequestConsumer.class);
+	
+	@Value("${db.url}")
 	private String url;
+	@Value("${db.username}")
 	private String username;
+	@Value("${db.password}")
 	private String password;
+	@Value("${db.driver}")
 	private String driver;
+	
+	private static String basedir = "/home/abfc149/prism";
+	private static String binary = "/home/abfc149/lib/prism/bin/prism";
 
 	public static void main(String[] args) throws InterruptedException {
 
-		ApplicationContext ctx = SpringApplication.run(Main.class, args);
+		ApplicationContext ctx = SpringApplication.run(PrismRequestConsumer.class, args);
 		final PrismRequestRepository repository = ctx
 				.getBean(PrismRequestRepository.class);
 
@@ -59,34 +72,63 @@ public class Main {
 					/*
 					 * Log the fact that the request's status has changed
 					 */
-					log.info("Prism request has been read from the database " + request);
+					log.info(String.format("Prism request has been read from the database %s",request.toString()));
 
-					final ProcessBuilder pb = new ProcessBuilder("cmd.exe", "/c",
-							"dir", "c:\\");
-				
+					final ProcessBuilder pb = new ProcessBuilder(
+							binary, 
+							"-javamaxmem",
+							"10g", 
+							basedir + "/models/sample1-pta-simple.prism",
+							basedir + "/properties/paper.props",
+							"-prop", 
+							"1", 
+							"-exportresults",
+							basedir + "/prism/output/output.txt");
+
 					new Thread() {
 						public void run() {
 							try {
+								log.info(pb.command().toString());
 								Process p = pb.start();
+								pb.redirectErrorStream(false);
 								try {
 									int result = p.waitFor();
 									/*
-									 * 0 indicates successful execution of the process
+									 * 0 indicates successful execution of the
+									 * process
 									 */
-									if(result == 0){
+									if (result == 0) {
 										request.setStatus(Status.COMPLETED);
 										repository.save(request);
-										log.info("Prism request with id " + request.getId() + " has been processed successfully.");
-									}else{
-										log.error("Prism request with id " + request.getId() + " has not been processed successfully.");
+										log.info(String.format("Prism request with id %d has been processed successfully.", request.getId()));
+									} else {
+										log.error(String.format("Prism request with id %d has not been processed successfully.", request.getId())); 
+										BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+										StringBuilder builder = new StringBuilder();
+										String line = null;
+										while ((line = reader.readLine()) != null) {
+											builder.append(line);
+											builder.append(System.getProperty("line.separator"));
+										}
+										log.error(builder.toString());
+										/*
+										 * Set the status of the request to ERROR and store it in the database
+										 */
+										request.setStatus(Status.ERROR);
+										repository.save(request);
+										/*
+										 * Destroy the process and every subprocess that has started
+										 */
+										p.destroyForcibly();
+										
 									}
-									
+
 								} catch (InterruptedException e) {
 									request.setStatus(Status.ERROR);
 									repository.save(request);
 									log.error(e.getMessage());
 								}
-								
+
 							} catch (IOException e) {
 								request.setStatus(Status.ERROR);
 								repository.save(request);
@@ -137,5 +179,4 @@ public class Main {
 	public void setDriver(String driver) {
 		this.driver = driver;
 	}
-
 }
