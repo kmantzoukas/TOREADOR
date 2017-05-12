@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 
 import java.io.Serializable;
+import java.sql.Blob;
 import java.sql.Timestamp;
 
 import javax.persistence.Column;
@@ -30,20 +31,20 @@ public class PrismRequest implements Serializable{
 	@Column(name="id", unique=true, nullable=false)
 	private Long id;
 	
-	@ApiModelProperty(example = "This is some test content of the prism model", required = true)
-	@Column(name="model", nullable=false)
-	private String model;
+	@ApiModelProperty(hidden = true, example = "", required = false)
+	@Column(name="model", nullable=true)
+	private byte[] model;
 	
-	@ApiModelProperty(example = "This is some test content for the properties file", required = true)
-	@Column(name="properties", nullable=false)
-	private String properties;
+	@ApiModelProperty(hidden = true, example = "This is some test content for the properties file", required = false)
+	@Column(name="properties", nullable=true)
+	private byte[] properties;
 	
 	@ApiModelProperty(example = "/path/to/output/file.txt", required = true)
 	@Column(name="output", nullable=false)
 	private String output;
 	
 	@ApiModelProperty(required = false, example = "1492073991")
-	@Column(name="created", nullable=false)
+	@Column(name="created", nullable=true)
 	private Timestamp created;
 	
 	@ApiModelProperty(example = "CREATED", allowableValues = "CREATED,PROCESSING,COMPLETED,ERROR")
@@ -88,16 +89,16 @@ public class PrismRequest implements Serializable{
 		this.user = user;
 	}
 	
-	public String getModel() {
+	public byte[] getModel() {
 		return model;
 	}
-	public void setModel(String model) {
+	public void setModel(byte[] model) {
 		this.model = model;
 	}
-	public String getProperties() {
+	public byte[] getProperties() {
 		return properties;
 	}
-	public void setProperties(String properties) {
+	public void setProperties(byte[]  properties) {
 		this.properties = properties;
 	}
 	@Override
