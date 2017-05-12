@@ -81,9 +81,11 @@ public class PrismRequestConsumer {
 							basedir + "/models/sample1-pta-simple.prism",
 							basedir + "/properties/paper.props",
 							"-prop", 
-							"1", 
+							"1",
+							"-const",
+							"u_TooManyUnresolved=0",
 							"-exportresults",
-							basedir + "/prism/output/output.txt");
+							basedir + "/prism/outputs/output.txt");
 
 					new Thread() {
 						public void run() {
