@@ -78,7 +78,7 @@ public class PrismRequestConsumer {
 							binary, 
 							"-javamaxmem",
 							"10g", 
-							basedir + "/models/sample1-pta-sample.prism",
+							basedir + "/models/sample1-pta-simple.prism",
 							basedir + "/properties/paper.props",
 							"-prop", 
 							"1", 
