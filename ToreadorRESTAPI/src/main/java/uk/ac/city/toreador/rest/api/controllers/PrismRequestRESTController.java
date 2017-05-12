@@ -15,7 +15,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import uk.ac.city.toreador.rest.api.entities.PrismRequest;
 import uk.ac.city.toreador.rest.api.jpa.repositories.PrismRequestRepository;
@@ -70,8 +72,37 @@ public class PrismRequestRESTController{
 		try {
 			
 			PrismRequest req = repository.save(request);
+			req = repository.findOne(req.getId());
 			log.info("Request saved successully " + req);
 			return new ResponseEntity<PrismRequest>(req,HttpStatus.OK);
+			
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	/*
+	 * This method creates a new prism request and stores it in the database
+	 */
+	@ApiOperation(
+			value = "Create a new prism request and store it in the database", 
+			nickname = "createPrismRequest",
+			response = PrismRequest.class)
+	@ApiResponses({
+	    @ApiResponse(code =  404, message ="The user with the specified id does was not found in the databse"),
+	    @ApiResponse(code =  400, message ="The user id provided is not in a valid format")
+	})
+	@RequestMapping(value = "/rest/api/requests/prism/{id}/model", method = RequestMethod.POST, consumes = "multipart/form-data",headers = {"Accept: application/pdf"})
+	public ResponseEntity<PrismRequest> createModelForPrismRequest(@PathVariable Long id, @RequestParam("model") MultipartFile model) {
+		
+		try {
+			
+			PrismRequest request = repository.findById(id);
+			request.setModel(model.getBytes());
+			repository.save(request);
+			log.info("Model for request with id " + request.getId() + " has been saved successully");
+			return new ResponseEntity<PrismRequest>(HttpStatus.OK);
 			
 		} catch (Exception e) {
 			log.error(e.getMessage());
