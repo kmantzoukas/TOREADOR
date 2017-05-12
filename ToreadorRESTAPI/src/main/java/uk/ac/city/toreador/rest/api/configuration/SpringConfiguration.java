@@ -19,6 +19,7 @@ import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
 import org.springframework.orm.jpa.vendor.Database;
 import org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 import org.springframework.web.servlet.config.annotation.EnableWebMvc;
 
 import springfox.documentation.builders.ApiInfoBuilder;
@@ -31,32 +32,31 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 
-
 @EnableJpaRepositories(basePackages = { "uk.ac.city.toreador.rest.api.jpa.repositories" })
 @ComponentScan(basePackages = { "uk.ac.city.toreador.rest.api" })
-@PropertySource({"classpath:db.properties", "classpath:swagger.api.properties"})
+@PropertySource({ "classpath:db.properties", "classpath:swagger.api.properties" })
 @EnableWebMvc
 @EnableSwagger2
 public class SpringConfiguration {
+
+	private int maxUploadSizeInMb = 5 * 1024 * 1024;
 
 	@Autowired
 	Environment env;
 
 	@Bean
 	public Docket toreadorAPI() {
-		return new Docket(DocumentationType.SWAGGER_2)
-			.select()
-			.apis(RequestHandlerSelectors.any())
-			.build()
-			.directModelSubstitute(LocalDate.class, String.class)
-			.directModelSubstitute(Timestamp.class, String.class)
-			.useDefaultResponseMessages(false)
-			.genericModelSubstitutes(ResponseEntity.class)
-			.apiInfo(apiInfo());
+		return new Docket(DocumentationType.SWAGGER_2).select()
+				.apis(RequestHandlerSelectors.any()).build()
+				.directModelSubstitute(LocalDate.class, String.class)
+				.directModelSubstitute(Timestamp.class, String.class)
+				.useDefaultResponseMessages(false)
+				.genericModelSubstitutes(ResponseEntity.class)
+				.apiInfo(apiInfo());
 	}
-	
+
 	private ApiInfo apiInfo() {
-		
+
 		final String title = env.getProperty("swagger.api.title");
 		final String description = env.getProperty("swagger.api.description");
 		final String name = env.getProperty("swagger.api.developer.name");
@@ -64,17 +64,12 @@ public class SpringConfiguration {
 		final String license = env.getProperty("swagger.api.license");
 		final String url = env.getProperty("swagger.api.license.url");
 		final String version = env.getProperty("swagger.api.version");
-		
-        return new ApiInfoBuilder()
-                .title(title)
-                .description(description)
-                .contact(new Contact(name, "", email))
-                .license(license)
-                .licenseUrl(url)
-                .version(version)
-                .build();
-    }
-	
+
+		return new ApiInfoBuilder().title(title).description(description)
+				.contact(new Contact(name, "", email)).license(license)
+				.licenseUrl(url).version(version).build();
+	}
+
 	@Bean
 	public DataSource dataSourceBean() throws NamingException,
 			PropertyVetoException {
@@ -115,5 +110,15 @@ public class SpringConfiguration {
 		txManager.setDataSource(dataSourceBean());
 
 		return txManager;
+	}
+
+	@Bean
+	public CommonsMultipartResolver multipartResolver() {
+		
+		CommonsMultipartResolver cmr = new CommonsMultipartResolver();
+		cmr.setMaxUploadSize(maxUploadSizeInMb);
+		
+		return cmr;
+
 	}
 }
