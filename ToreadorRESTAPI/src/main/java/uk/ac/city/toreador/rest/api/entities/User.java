@@ -7,7 +7,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -49,9 +48,8 @@ public class User implements Serializable{
 	private String password;
 	
 	@ApiModelProperty(hidden = true)
-	@OneToMany(mappedBy = "user", fetch=FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-	@JsonIgnore
-	private List<PrismRequest> prismRequests = new ArrayList<PrismRequest>();
+	@OneToMany(mappedBy = "user", fetch=FetchType.EAGER)
+	private List<ValidationProject> validationProjects = new ArrayList<ValidationProject>();
 	
 	public Long getId() {
 		return id;
@@ -84,16 +82,16 @@ public class User implements Serializable{
 		this.password = password;
 	}
 	
-	public List<PrismRequest> getPrismRequests() {
-		return prismRequests;
+	public List<ValidationProject> getValidationProjects() {
+		return validationProjects;
 	}
-	public void setPrismRequests(List<PrismRequest> prismRequests) {
-		this.prismRequests = prismRequests;
+	public void setValidationProjects(List<ValidationProject> validationProjects) {
+		this.validationProjects = validationProjects;
 	}
 	@Override
 	public String toString() {
 		return String
-				.format("User [id=%s, name=%s, surname=%s, username=%s, prismRequests=%s]",
-						id, name, surname, username, prismRequests);
+				.format("User [id=%s, name=%s, surname=%s, username=%s, validation_projects=%s]",
+						id, name, surname, username, validationProjects);
 	}
 }
