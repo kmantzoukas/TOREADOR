@@ -9,7 +9,7 @@ $ git clone https://github.com/kmantzoukas/TOREADOR.git
 ```
 
 #### Build the docker image
-In order to build the docker image navigate to the project's directory and use [Docker](https://www.docker.com/) to build it. The image is tagged under the name toreador-webui. For more details check the corresponding [Dockerfile](/blob/master/DockerApachePHP/Dockerfile)
+In order to build the docker image navigate to the project's directory and use [Docker](https://www.docker.com/) to build it. The image is tagged under the name toreador-webui. For more details check the corresponding [Dockerfile](https://github.com/kmantzoukas/TOREADOR/blob/master/DockerApachePHP/Dockerfile)
 ```sh
 $ cd TOREADOR/DockerApachePHP
 $ docker build -t toreador-webui .
