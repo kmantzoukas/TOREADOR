@@ -1,3 +1,5 @@
 addSbtPlugin("com.typesafe.sbteclipse" % "sbteclipse-plugin" % "5.0.1")
 addSbtPlugin("com.github.shmishleniy" % "sbt-deploy-ssh" % "0.1.2")
 addSbtPlugin("com.typesafe.sbt" % "sbt-native-packager" % "1.1.4")
+addSbtPlugin("com.github.saurfang" % "sbt-spark-submit" % "0.0.4")
+addSbtPlugin("com.eed3si9n" % "sbt-assembly" % "0.13.0")
