@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 import uk.ac.city.toreador.rest.api.entities.MonitoringProject;
 import uk.ac.city.toreador.rest.api.entities.MonitoringProjectStatus;
 import uk.ac.city.toreador.rest.api.entities.User;
-import uk.ac.city.toreador.rest.api.entities.ValidationProject;
 import uk.ac.city.toreador.rest.api.jpa.repositories.MonitoringProjectRepository;
 import uk.ac.city.toreador.rest.api.jpa.repositories.UserRepository;
 
@@ -64,9 +63,9 @@ public class MonitoringProjectRESTController{
 	 * This method returns the monitoring project with the specified id that is stored in the database
 	 */
 	@ApiOperation(
-			value = "Get the validation project with the specified id from the database", 
+			value = "Get the monitoring project with the specified id from the database", 
 			nickname = "getMonitoringProjectsByUser",
-			response = ValidationProject.class)
+			response = MonitoringProject.class)
 	@ApiResponses({
 	    @ApiResponse(code =  404, message ="The user with the specified id does was not found in the databse"),
 	    @ApiResponse(code =  400, message ="The user with the id provided is not in a valid format")
@@ -91,15 +90,15 @@ public class MonitoringProjectRESTController{
 	}
 
 	/*
-	 * This method returns the validation project with the specified id that is stored in the database
+	 * This method returns the monitoring project with the specified id that is stored in the database
 	 */
 	@ApiOperation(
-			value = "Get the validation project with the specified id from the database", 
+			value = "Get the monitoring project with the specified id from the database", 
 			nickname = "getMonitoringProjectById",
-			response = ValidationProject.class)
+			response = MonitoringProject.class)
 	@ApiResponses({
-	    @ApiResponse(code =  404, message ="The validation project with the specified id does was not found in the databse"),
-	    @ApiResponse(code =  400, message ="The validation project with the id provided is not in a valid format")
+	    @ApiResponse(code =  404, message ="The monitoring project with the specified id does was not found in the databse"),
+	    @ApiResponse(code =  400, message ="The monitoring project with the id provided is not in a valid format")
 	})
 	@RequestMapping(value = "/rest/api/projects/monitoring/{pid}", method = RequestMethod.GET, produces = "application/json")
 	public ResponseEntity<MonitoringProject> getMonitoringProjectById(@PathVariable Long pid) {
@@ -123,15 +122,15 @@ public class MonitoringProjectRESTController{
 	}
 	
 	/*
-	 * This method updates a validation project and stores it in the database
+	 * This method updates a monitoring project and stores it in the database
 	 */
 	@ApiOperation(
-			value = "Update a validation project and store it in the database", 
-			nickname = "putValidationProject",
-			response = ValidationProject.class)
+			value = "Update a monitoring project and store it in the database", 
+			nickname = "putMonitoringProject",
+			response = MonitoringProject.class)
 	@ApiResponses({
-	    @ApiResponse(code =  404, message ="The validation project with the specified id was not found in the databse"),
-	    @ApiResponse(code =  400, message ="The validation project with the id provided is not in a valid format")
+	    @ApiResponse(code =  404, message ="The monitoring project with the specified id was not found in the databse"),
+	    @ApiResponse(code =  400, message ="The monitoring project with the id provided is not in a valid format")
 	})
 	@RequestMapping(value = "/rest/api/projects/monitoring", method = RequestMethod.PUT, produces = "application/json", consumes = "application/json")
 	public ResponseEntity<MonitoringProject> putMonitoringProject(@RequestBody MonitoringProject project) {
@@ -156,15 +155,15 @@ public class MonitoringProjectRESTController{
 	}
 
 	/*
-	 * This method creates a new validation project and stores it in the database
+	 * This method creates a new monitoring project and stores it in the database
 	 */
 	@ApiOperation(
-			value = "Create a new validation project and store it in the database", 
-			nickname = "createValidationProject",
-			response = ValidationProject.class)
+			value = "Create a new monitoring project and store it in the database", 
+			nickname = "createMonitoringProject",
+			response = MonitoringProject.class)
 	@ApiResponses({
-	    @ApiResponse(code =  404, message ="The validation project with the specified id does was not found in the databse"),
-	    @ApiResponse(code =  400, message ="The validation project with the id provided is not in a valid format")
+	    @ApiResponse(code =  404, message ="The monitoring project with the specified id does was not found in the databse"),
+	    @ApiResponse(code =  400, message ="The monitoring project with the id provided is not in a valid format")
 	})
 	@RequestMapping(value = "/rest/api/projects/monitoring", method = RequestMethod.POST, produces = "application/json", consumes = "application/json")
 	public ResponseEntity<MonitoringProject> postMonitoringProject(@RequestBody MonitoringProject project) {
@@ -172,7 +171,7 @@ public class MonitoringProjectRESTController{
 		try {
 			project.setStatus(MonitoringProjectStatus.CREATED);
 			MonitoringProject p = monitoringProjectRepository.save(project);
-			log.info("Validation project saved successully " + p);
+			log.info("Monitoring project saved successully " + p);
 			return new ResponseEntity<MonitoringProject>(p,HttpStatus.OK);
 			
 		} catch (Exception e) {
@@ -182,12 +181,12 @@ public class MonitoringProjectRESTController{
 	}
 	
 	/*
-	 * This method returns the validation project with the specified id that is stored in the database
+	 * This method returns the monitoring project with the specified id that is stored in the database
 	 */
 	@ApiOperation(
 			value = "Delete the monitoring project with the specified id from the database", 
 			nickname = "deleteMonitoringProjectById",
-			response = ValidationProject.class)
+			response = MonitoringProject.class)
 	@ApiResponses({
 	    @ApiResponse(code =  404, message ="The monitoring project with the specified id does was not found in the databse"),
 	    @ApiResponse(code =  400, message ="The monitoring project with the id provided is not in a valid format")
