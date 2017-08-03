@@ -4,6 +4,6 @@ import org.springframework.data.repository.CrudRepository;
 
 import uk.ac.city.toreador.rest.api.entities.User;
 
-public interface UserRepository extends CrudRepository<User, Long>{
+public interface UsersRepository extends CrudRepository<User, Long>{
 	User findById(Long id);
 }

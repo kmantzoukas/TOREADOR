@@ -10,7 +10,7 @@ declare variable $thedirectory as xs:string external;
 (: let $doc := doc('file:///Users/sbkg342/Documents/workspace/AssetList/OWL Examples/DataCleaningWhile.owls') :)
 let $doc := doc(concat($thedirectory, '/', $theinput))
 let $cs := fn:data($doc//*:Service/@*:ID)
-return ('{"Assets" : [{"composite service" : "', $cs, '"}, [', (
+return ('{"compositeService" : { "name":"', $cs, '"}, "atomicServices":[', (
 for $element in $doc/*:RDF/*:WsdlGrounding
     for $o in fn:data($element//*:hasAtomicProcessGrounding/@*:resource)
     let $op :=  (fn:substring-after($o, '#'))
@@ -21,7 +21,7 @@ for $element in $doc/*:RDF/*:WsdlGrounding
                 let $atop := (fn:substring-after(fn:data($ats//*:WsdlAtomicProcessGrounding//*:wsdlOperation//*:WsdlOperationRef//*:operation), '#'))
                 let $inmes := (fn:substring-after(fn:data($ats//*:WsdlAtomicProcessGrounding//*:wsdlInputMessage), '#'))
                 let $outmes :=(fn:substring-after(fn:data($ats//*:WsdlAtomicProcessGrounding//*:wsdlOutputMessage), '#')) 
-let $result :=('{"atomic service" :"',$ser,'","operation" :"',$ser,'","input" :"', $inmes,'","output":"',$outmes,'"},')
+let $result :=('{"name" :"',$ser,'","input" :"', $inmes,'","output":"',$outmes,'"},')
     
- return ( $result) ), ' ] ]}')
+ return ( $result) ), '] }')
 

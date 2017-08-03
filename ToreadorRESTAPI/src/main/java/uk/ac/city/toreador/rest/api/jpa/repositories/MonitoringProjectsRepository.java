@@ -7,7 +7,7 @@ import org.springframework.data.repository.CrudRepository;
 import uk.ac.city.toreador.rest.api.entities.MonitoringProject;
 import uk.ac.city.toreador.rest.api.entities.User;
 
-public interface MonitoringProjectRepository extends CrudRepository<MonitoringProject, Long>{
+public interface MonitoringProjectsRepository extends CrudRepository<MonitoringProject, Long>{
 	MonitoringProject findById(Long id);
 	List<MonitoringProject> findByUser(User user);
 }

@@ -1,10 +1,5 @@
 package uk.ac.city.toreador.rest.api.controllers;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -17,11 +12,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import uk.ac.city.toreador.rest.api.entities.MonitoringProject;
 import uk.ac.city.toreador.rest.api.entities.MonitoringProjectStatus;
 import uk.ac.city.toreador.rest.api.entities.User;
-import uk.ac.city.toreador.rest.api.jpa.repositories.MonitoringProjectRepository;
-import uk.ac.city.toreador.rest.api.jpa.repositories.UserRepository;
+import uk.ac.city.toreador.rest.api.jpa.repositories.MonitoringProjectsRepository;
+import uk.ac.city.toreador.rest.api.jpa.repositories.UsersRepository;
 
 @Api(tags= "Monitoring project resource")
 @RestController
@@ -30,10 +29,10 @@ public class MonitoringProjectRESTController{
 	final static Logger log = Logger.getLogger(MonitoringProjectRESTController.class);
 	
 	@Autowired
-	MonitoringProjectRepository monitoringProjectRepository;
+	MonitoringProjectsRepository monitoringProjectRepository;
 	
 	@Autowired
-	UserRepository userRepository;
+	UsersRepository userRepository;
 	
 	/*
 	 * This method returns a list of all the monitoring projects stored in the database

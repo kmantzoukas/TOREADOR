@@ -1,10 +1,5 @@
 package uk.ac.city.toreador.rest.api.controllers;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
-import io.swagger.annotations.ApiResponse;
-import io.swagger.annotations.ApiResponses;
-
 import java.util.List;
 
 import org.apache.log4j.Logger;
@@ -19,8 +14,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import uk.ac.city.toreador.rest.api.entities.PrismRequest;
-import uk.ac.city.toreador.rest.api.jpa.repositories.PrismRequestRepository;
+import uk.ac.city.toreador.rest.api.jpa.repositories.PrismRequestsRepository;
 
 @Api(tags= "Prism request resource")
 @RestController
@@ -29,7 +28,7 @@ public class PrismRequestRESTController{
 	final static Logger log = Logger.getLogger(PrismRequestRESTController.class);
 	
 	@Autowired
-	PrismRequestRepository repository;
+	PrismRequestsRepository repository;
 	
 	/*
 	 * This method returns a list of all the prism requests stored in the database

@@ -27,6 +27,16 @@
 
 	<dependencies>
 		<dependency>
+			<groupId>javax.xml</groupId>
+			<artifactId>jaxb-api</artifactId>
+			<version>2.1.12</version>
+		</dependency>
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+		<dependency>
 			<groupId>com.saxonhe</groupId>
 			<artifactId>saxonhe</artifactId>
 			<version>9.0</version>
@@ -42,7 +52,7 @@
 			<type>jar</type>
 			<systemPath>${basedir}/lib/saxon9-xqj.jar</systemPath>
 		</dependency>
-	
+
 		<dependency>
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-core</artifactId>
@@ -124,6 +134,36 @@
 	<build>
 		<plugins>
 			<plugin>
+				<groupId>org.jvnet.jaxb2.maven2</groupId>
+				<artifactId>maven-jaxb2-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>xjc</id>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<configuration>
+							<schemas>
+								<schema>
+									<fileset>
+										<directory>${basedir}/src/main/resources</directory>
+										<includes>
+											<include>ws-agreement-demo.xsd</include>
+										</includes>
+									</fileset>
+								</schema>
+							</schemas>
+							<extension>true</extension>
+							<args>
+								<arg>-XautoNameResolution</arg>
+								<arg>-extension</arg>
+								<arg>${basedir}/src/main/resources/simpleMode.xml</arg>
+							</args>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
 				<groupId>org.apache.tomcat.maven</groupId>
 				<artifactId>tomcat7-maven-plugin</artifactId>
 				<version>2.1</version>
@@ -167,7 +207,6 @@
 				</plugin>
 			</plugins>
 		</pluginManagement>
-
 		<finalName>toreador</finalName>
 	</build>
 	<profiles>
@@ -211,6 +250,10 @@
 			<id>saxonoca-repo</id>
 			<url>http://dist.wso2.org/maven2/</url>
 		</repository>
-		
+		<repository>
+			<id>jaxb-repo</id>
+			<url>http://code.berkeleybop.org/maven/repository/</url>
+		</repository>
+
 	</repositories>
 </project>
