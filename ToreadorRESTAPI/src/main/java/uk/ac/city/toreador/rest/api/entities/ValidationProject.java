@@ -2,6 +2,7 @@ package uk.ac.city.toreador.rest.api.entities;
 
 import java.io.Serializable;
 import java.sql.Timestamp;
+import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -12,6 +13,8 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -47,14 +50,14 @@ public class ValidationProject implements Serializable{
 	private byte[] properties;
 	
 	@ApiModelProperty(example = "/path/to/output/file.txt", required = true)
-	@Column(name="output", nullable=false)
-	private String output;
+	@Column(name="output", nullable=true)
+	private byte[] output;
 	
 	@ApiModelProperty(required = false, example = "1492073991")
 	@Column(name="created", nullable=true)
 	private Timestamp created;
 	
-	@ApiModelProperty(example = "CREATED", allowableValues = "CREATED,PROCESSING,COMPLETED,ERROR")
+	@ApiModelProperty(example = "CREATED", allowableValues = "CREATING,CREATED,PROCESSING,COMPLETED,ERROR")
 	@Column(name="status", nullable=false)
 	@Enumerated(EnumType.STRING)
 	private ValidationProjectStatus status;
@@ -63,6 +66,19 @@ public class ValidationProject implements Serializable{
 	@ManyToOne(optional = false, fetch=FetchType.EAGER)
 	@JoinColumn(name = "user")
 	private User user;
+	
+	@ApiModelProperty(example = "NIST", allowableValues = "NIST,CSA")
+	@Column(name="propertyCategoryCatalog", nullable=false)
+	@Enumerated(EnumType.STRING)
+	private PropertyCategoryCatalog propertyCategoryCatalog;
+	
+	@ApiModelProperty(required=false, hidden = false)
+	@OneToOne(fetch=FetchType.EAGER, mappedBy="project")
+	private CompositeService compositeService;
+	
+	@ApiModelProperty(required=false, hidden = false)
+	@OneToMany(fetch=FetchType.EAGER, mappedBy="project")
+	private Set<ValidationAsset> assets;
 	
 	public Long getId() {
 		return id;
@@ -78,11 +94,11 @@ public class ValidationProject implements Serializable{
 	public void setName(String name) {
 		this.name = name;
 	}
-
-	public String getOutput() {
+	@JsonIgnore
+	public byte[] getOutput() {
 		return output;
 	}
-	public void setOutput(String output) {
+	public void setOutput(byte[] output) {
 		this.output = output;
 	}
 	public Timestamp getCreated() {
@@ -105,19 +121,44 @@ public class ValidationProject implements Serializable{
 	public void setUser(User user) {
 		this.user = user;
 	}
-	
+	@JsonIgnore
 	public byte[] getModel() {
 		return model;
 	}
 	public void setModel(byte[] model) {
 		this.model = model;
 	}
+	@JsonIgnore
 	public byte[] getProperties() {
 		return properties;
 	}
 	public void setProperties(byte[]  properties) {
 		this.properties = properties;
 	}
+	public PropertyCategoryCatalog getPropertyCategoryCatalog() {
+		return propertyCategoryCatalog;
+	}
+
+	public void setPropertyCategoryCatalog(PropertyCategoryCatalog propertyCategoryCatalog) {
+		this.propertyCategoryCatalog = propertyCategoryCatalog;
+	}
+	
+	public CompositeService getCompositeService() {
+		return compositeService;
+	}
+	
+	public void setCompositeService(CompositeService compositeService) {
+		this.compositeService = compositeService;
+	}
+	
+	public Set<ValidationAsset> getAssets() {
+		return assets;
+	}
+
+	public void setAssets(Set<ValidationAsset> assets) {
+		this.assets = assets;
+	}
+
 	@Override
 	public String toString() {
 		return String

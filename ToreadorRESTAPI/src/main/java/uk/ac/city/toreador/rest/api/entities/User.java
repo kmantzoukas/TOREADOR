@@ -1,8 +1,8 @@
 package uk.ac.city.toreador.rest.api.entities;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -49,7 +49,7 @@ public class User implements Serializable{
 	
 	@ApiModelProperty(hidden = true)
 	@OneToMany(mappedBy = "user", fetch=FetchType.EAGER)
-	private List<ValidationProject> validationProjects = new ArrayList<ValidationProject>();
+	private Set<ValidationProject> validationProjects = new LinkedHashSet<ValidationProject>();
 	
 	public Long getId() {
 		return id;
@@ -82,10 +82,10 @@ public class User implements Serializable{
 		this.password = password;
 	}
 	
-	public List<ValidationProject> getValidationProjects() {
+	public Set<ValidationProject> getValidationProjects() {
 		return validationProjects;
 	}
-	public void setValidationProjects(List<ValidationProject> validationProjects) {
+	public void setValidationProjects(Set<ValidationProject> validationProjects) {
 		this.validationProjects = validationProjects;
 	}
 	@Override

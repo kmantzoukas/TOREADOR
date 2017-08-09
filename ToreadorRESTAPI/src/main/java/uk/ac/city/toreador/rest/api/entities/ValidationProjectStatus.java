@@ -4,5 +4,5 @@ import io.swagger.annotations.ApiModel;
 
 @ApiModel
 public enum ValidationProjectStatus {
-	CREATED,PROCESSING,COMPLETED,ERROR
+	CREATING,CREATED,PROCESSING,COMPLETED,ERROR
 }

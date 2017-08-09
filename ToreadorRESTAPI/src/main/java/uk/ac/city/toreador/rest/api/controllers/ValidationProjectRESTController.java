@@ -1,12 +1,11 @@
 package uk.ac.city.toreador.rest.api.controllers;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Iterator;
-import java.util.List;
+import java.util.Set;
 
 import javax.xml.namespace.QName;
 import javax.xml.xquery.XQConnection;
@@ -40,13 +39,21 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import uk.ac.city.toreador.rest.api.entities.AssetType;
 import uk.ac.city.toreador.rest.api.entities.AtomicService;
-import uk.ac.city.toreador.rest.api.entities.Compositeservice;
+import uk.ac.city.toreador.rest.api.entities.CompositeService;
+import uk.ac.city.toreador.rest.api.entities.GuardedAction;
+import uk.ac.city.toreador.rest.api.entities.Input;
+import uk.ac.city.toreador.rest.api.entities.Operation;
+import uk.ac.city.toreador.rest.api.entities.Output;
 import uk.ac.city.toreador.rest.api.entities.User;
 import uk.ac.city.toreador.rest.api.entities.ValidationAsset;
 import uk.ac.city.toreador.rest.api.entities.ValidationProject;
 import uk.ac.city.toreador.rest.api.entities.ValidationProjectStatus;
 import uk.ac.city.toreador.rest.api.jpa.repositories.AtomicServicesRepository;
 import uk.ac.city.toreador.rest.api.jpa.repositories.CompositeServicesRepository;
+import uk.ac.city.toreador.rest.api.jpa.repositories.GuardedActionsRepository;
+import uk.ac.city.toreador.rest.api.jpa.repositories.InputsRepository;
+import uk.ac.city.toreador.rest.api.jpa.repositories.OperationsRepository;
+import uk.ac.city.toreador.rest.api.jpa.repositories.OutputsRepository;
 import uk.ac.city.toreador.rest.api.jpa.repositories.UsersRepository;
 import uk.ac.city.toreador.rest.api.jpa.repositories.ValidationAssetsRepository;
 import uk.ac.city.toreador.rest.api.jpa.repositories.ValidationProjectsRepository;
@@ -73,6 +80,17 @@ public class ValidationProjectRESTController {
 	@Autowired
 	ValidationAssetsRepository validationAssetsRepository;
 	
+	@Autowired
+	OperationsRepository operationsRepository;
+
+	@Autowired
+	OutputsRepository outputsRepository;
+	
+	@Autowired
+	InputsRepository inputsRepository;
+	
+	@Autowired
+	GuardedActionsRepository guardedActionsRepository;
 	
 
 	/*
@@ -83,19 +101,19 @@ public class ValidationProjectRESTController {
 	@ApiResponses({ @ApiResponse(code = 404, message = "Not found"),
 			@ApiResponse(code = 400, message = "Invalid input") })
 	@RequestMapping(value = "/rest/api/projects/validation", method = RequestMethod.GET, produces = "application/json")
-	public ResponseEntity<List<ValidationProject>> getAllValidationProjects() {
+	public ResponseEntity<Set<ValidationProject>> getAllValidationProjects() {
 
-		List<ValidationProject> requests = null;
+		Set<ValidationProject> requests = null;
 
 		try {
-			requests = (List<ValidationProject>) validationProjectRepository.findAll();
+			requests = (Set<ValidationProject>) validationProjectRepository.findAll();
 			log.info("Fetching the list of all validation projects. Total number of validation projects fetched is "
 					+ requests.size());
-			return new ResponseEntity<List<ValidationProject>>(requests, HttpStatus.OK);
+			return new ResponseEntity<Set<ValidationProject>>(requests, HttpStatus.OK);
 
 		} catch (Exception e) {
 			log.error(e.getMessage());
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<Set<ValidationProject>>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -107,21 +125,21 @@ public class ValidationProjectRESTController {
 	@ApiResponses({ @ApiResponse(code = 404, message = "The user with the specified id was not found in the databse"),
 			@ApiResponse(code = 400, message = "The user with the id provided is not in a valid format") })
 	@RequestMapping(value = "/rest/api/users/{uid}/projects/validation", method = RequestMethod.GET, produces = "application/json")
-	public ResponseEntity<List<ValidationProject>> getValidationProjectsByUser(@PathVariable Long uid) {
+	public ResponseEntity<Set<ValidationProject>> getValidationProjectsByUser(@PathVariable Long uid) {
 
 		try {
 			User user = userRepository.findById(uid);
 
 			if (user != null) {
-				List<ValidationProject> projects = validationProjectRepository.findByUser(user);
+				Set<ValidationProject> projects = validationProjectRepository.findByUser(user);
 				log.info("Fetching list of validation projects for user " + user.toString());
-				return new ResponseEntity<List<ValidationProject>>(projects, HttpStatus.OK);
+				return new ResponseEntity<Set<ValidationProject>>(projects, HttpStatus.OK);
 			} else {
-				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+				return new ResponseEntity<Set<ValidationProject>>(HttpStatus.NOT_FOUND);
 			}
 		} catch (Exception e) {
 			log.error(e.getMessage());
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<Set<ValidationProject>>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -153,30 +171,35 @@ public class ValidationProjectRESTController {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-
+	
 	/*
-	 * This method creates a new validation project and stores it in the
-	 * database
+	 * This method returns the validation project with the specified id that is
+	 * stored in the database
 	 */
-	@ApiOperation(value = "Create a new validation project and store it in the database", nickname = "createValidationProject", response = ValidationProject.class)
+	@ApiOperation(value = "Get a list of all assets for the validation project with the specified id from the database", nickname = "getAssetsByValidationProjectId")
 	@ApiResponses({
 			@ApiResponse(code = 404, message = "The validation project with the specified id was not found in the databse"),
 			@ApiResponse(code = 400, message = "The validation project with the id provided is not in a valid format") })
-	@RequestMapping(value = "/rest/api/projects/validation", method = RequestMethod.POST, produces = "application/json", consumes = "application/json")
-	public ResponseEntity<ValidationProject> postValidationProject(@RequestBody ValidationProject project) {
+	@RequestMapping(value = "/rest/api/projects/validation/{pid}/assets", method = RequestMethod.GET, produces = "application/json")
+	public ResponseEntity<Set<ValidationAsset>> getAssetsByValidationProjectId(@PathVariable Long pid) {
+
+		ValidationProject validationProject = null;
 
 		try {
-			project.setStatus(ValidationProjectStatus.CREATED);
-			ValidationProject p = validationProjectRepository.save(project);
-			log.info("Validation project saved successully " + p);
-			return new ResponseEntity<ValidationProject>(p, HttpStatus.OK);
+			validationProject = validationProjectRepository.findById(pid);
 
+			if (validationProject != null) {
+				Set<ValidationAsset> assets = validationProject.getAssets();
+				return new ResponseEntity<Set<ValidationAsset>>(assets, HttpStatus.OK);
+			} else {
+				return new ResponseEntity<Set<ValidationAsset>>(HttpStatus.NOT_FOUND);
+			}
 		} catch (Exception e) {
 			log.error(e.getMessage());
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<Set<ValidationAsset>>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-	
+
 	/*
 	 * This method creates a new validation project and stores it in the
 	 * database
@@ -197,8 +220,8 @@ public class ValidationProjectRESTController {
 			Translate tr = new Translate();
 
 			String[] results = tr.translateSLAtoPrismAndLisp(file);
-			log.info(results[0]); // The Prism model
-			log.info(results[1]); // The Lisp code
+			//log.info(results[0]); // The Prism model
+			//log.info(results[1]); // The Lisp code
 			
 			byte[] model = results[0].getBytes();
 			
@@ -228,7 +251,6 @@ public class ValidationProjectRESTController {
 
 		try {
 			
-			
 			XQDataSource ds = new com.saxonica.xqj.SaxonXQDataSource();
 			XQConnection con = ds.getConnection();
 			
@@ -241,37 +263,15 @@ public class ValidationProjectRESTController {
 			
 			File tempdir = Files.createTempDir();
 			
-			ValidationProject vproject = validationProjectRepository.findOne(pid);
-			Compositeservice cservice = null;
-			
-			log.info(vproject.getId());
-			
-			int counter = 0;
+			ValidationProject project = validationProjectRepository.findOne(pid);
 			
 			for(MultipartFile file : files){
 				InputStream input = file.getInputStream();
 				File owls = new File(tempdir.getAbsolutePath() + "/" + file.getOriginalFilename());
 			    OutputStream out = new FileOutputStream(owls);
 				IOUtils.copy(input,out);
-				
-				if(counter == 0){
-					cservice = new Compositeservice();
-					cservice.setName(file.getOriginalFilename());
-					cservice.setProject(vproject);
-					cservice.setOwls(files[0].getBytes());
-					compositeServiceRepository.save(cservice);
-				}else{
-					AtomicService aservice = new AtomicService();
-					aservice.setName(file.getOriginalFilename());
-					aservice.setCompositeService(cservice);
-					aservice.setOwl(file.getBytes());
-					atomicServicesRepository.save(aservice);
-				}
-				
 				input.close();
 				out.close();
-				
-				counter++;
 			}
 			
 			expr.bindObject(new QName("theinput"), new String(files[0].getOriginalFilename()), null);
@@ -284,44 +284,154 @@ public class ValidationProjectRESTController {
 			Object obj = parser.parse(json);
 			
 			JSONObject jsonObject = (JSONObject) obj;
-            JSONObject compositeService = (JSONObject) jsonObject.get("compositeService");
-            cservice.setName((String)compositeService.get("name"));
-            compositeServiceRepository.save(cservice);
-
-            JSONArray atomicServices = (JSONArray) jsonObject.get("atomicServices");
-            Iterator<JSONObject> iterator = atomicServices.iterator();
-            while (iterator.hasNext()) {
-            	JSONObject atomicService = iterator.next();
-            	
-            	ValidationAsset operationAsset = new ValidationAsset();
-            	operationAsset.setProject(vproject);
-            	operationAsset.setName((String)atomicService.get("name"));
-            	operationAsset.setType(AssetType.OPERATION);
-            	validationAssetsRepository.save(operationAsset);
-            	
-            	ValidationAsset inputDataAsset = new ValidationAsset();
-            	inputDataAsset.setProject(vproject);
-            	inputDataAsset.setName((String)atomicService.get("input"));
-            	inputDataAsset.setType(AssetType.DATA);
-            	validationAssetsRepository.save(inputDataAsset);
-            	
-            	ValidationAsset outputDataAsset = new ValidationAsset();
-            	outputDataAsset.setProject(vproject);
-            	outputDataAsset.setName((String)atomicService.get("output"));
-            	outputDataAsset.setType(AssetType.DATA);
-            	validationAssetsRepository.save(outputDataAsset);
-            }
+            JSONObject compositeServiceObj = (JSONObject) jsonObject.get("compositeService");
+            
+            CompositeService compositeService = new CompositeService();
+            compositeService.setName((String)compositeServiceObj.get("name"));
+            compositeService.setProject(project);
+            /*
+            compositeService.setOwls(
+            	IOUtils.toByteArray(
+            		new FileInputStream(
+            			new File(tempdir.getAbsolutePath() + "/" + (String)compositeServiceObj.get("name") + ".owls"))));
+            */
+            compositeServiceRepository.save(compositeService);
 			
-			expr.close();
-			con.close();
-
+            JSONArray atomicServices = (JSONArray) compositeServiceObj.get("atomicServices");
+            Iterator<JSONObject> atomicServicesiterator = atomicServices.iterator();
+            
+            while (atomicServicesiterator.hasNext()) {
+            	
+            	JSONObject atomicServiceObj = atomicServicesiterator.next();
+            	
+            	AtomicService atomicService = new AtomicService();
+            	atomicService.setName((String)atomicServiceObj.get("serviceName"));
+            	atomicService.setCompositeService(compositeService);
+            	/*
+            	 * Store the newly created atomic service in the atomicService variable to use it later on
+            	 */
+            	AtomicService tempAtomicservice = atomicServicesRepository.save(atomicService); 
+            	
+            	JSONArray operations = (JSONArray) atomicServiceObj.get("operations");
+            	Iterator<JSONObject> operationsIterator = operations.iterator();
+            	
+            	 while (operationsIterator.hasNext()) {
+                 	JSONObject operationObj = operationsIterator.next();
+                 	
+                 	/*
+                 	 * Create and store the newly created operation @ table operations
+                 	 */
+                 	Operation operation = new Operation();
+                 	operation.setName((String)operationObj.get("operationName"));
+                 	operation.setInputMessageName((String)operationObj.get("inputMessageName"));
+                 	operation.setOutputMessageName((String)operationObj.get("outputMessageName"));
+                 	operation.setAtomicService(tempAtomicservice);
+                 	Operation tempOperation = operationsRepository.save(operation);
+                 	
+                 	/*
+                	 * Store the operation as an asset of type operation
+                	 */
+                	ValidationAsset operationAsset = new ValidationAsset();
+                	operationAsset.setProject(project);
+                	operationAsset.setName("service." + compositeService.getName() + ".operation." + operation.getName());
+                	operationAsset.setType(AssetType.OPERATION);
+                	validationAssetsRepository.save(operationAsset);
+                 	
+                 	/*
+                 	 * Create and store the output of the operation @ table outputs
+                 	 */
+                 	
+                 	Output output = new Output();
+                 	output.setOperation(tempOperation);
+                 	output.setName((String)operationObj.get("outputName"));
+                 	output.setType((String)operationObj.get("outputType"));
+                 	outputsRepository.save(output);
+                 	
+                 	/*
+                	 * Store the operation as an asset of type output
+                	 */
+                	ValidationAsset outputAsset = new ValidationAsset();
+                	outputAsset.setProject(project);
+                	outputAsset.setName("service." + compositeService.getName() + ".operation." + operation.getName() + ".output." + output.getName());
+                	outputAsset.setType(AssetType.OUTPUT);
+                	validationAssetsRepository.save(outputAsset);
+                 	
+                 	JSONArray inputsObj = (JSONArray) operationObj.get("inputParameters");
+                	Iterator<JSONObject> inputsIterator = inputsObj.iterator();
+                	
+                	while(inputsIterator.hasNext()){
+                		JSONObject input = inputsIterator.next();
+                		
+                		Input in = new Input();
+                		in.setName((String)input.get("inputName"));
+                		in.setOperation(tempOperation);
+                		in.setType((String)input.get("inputType"));
+                		inputsRepository.save(in);
+                		
+                		/*
+                    	 * Store the operation as an asset of type input
+                    	 */
+                    	ValidationAsset inputAsset = new ValidationAsset();
+                    	inputAsset.setProject(project);
+                    	inputAsset.setName("service." + compositeService.getName() + ".operation." + operation.getName() + ".input." + in.getName());
+                    	inputAsset.setType(AssetType.INPUT);
+                    	validationAssetsRepository.save(inputAsset);
+                		
+                	}
+            	 }
+            }
+            
 			return new ResponseEntity<ValidationProject>(HttpStatus.OK);
 
-		} catch (FileNotFoundException e) {
+		}catch (Exception e) {
 			log.error(e.getMessage());
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+	
+	/*
+	 * This method creates a new validation project and stores it in the
+	 * database
+	 */
+	@ApiOperation(value = "Create a new validation project and store it in the database", nickname = "uploadServiceModel", response = ValidationProject.class)
+	@ApiResponses({
+			@ApiResponse(code = 404, message = "The validation project with the specified id was not found in the databse"),
+			@ApiResponse(code = 400, message = "The validation project with the id provided is not in a valid format") })
+	@Transactional
+	@RequestMapping(value = "/rest/api/projects/validation", method = RequestMethod.POST, consumes = "application/json")
+	public ResponseEntity<ValidationProject> createValidationProject(@RequestBody ValidationProject project) {
 
+		try {
+			//project.setCreated(new Timestamp(System.currentTimeMillis()));
+			project.setStatus(ValidationProjectStatus.CREATING);
+			validationProjectRepository.save(project);
+			return new ResponseEntity<ValidationProject>(project, HttpStatus.CREATED);
+
+		}
+		catch (Exception e) {
+			log.error(e.getMessage());
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	/*
+	 * This method creates a new validation project and stores it in the
+	 * database
+	 */
+	@ApiOperation(value = "Create a new validation project and store it in the database", nickname = "uploadServiceModel", response = ValidationProject.class)
+	@ApiResponses({
+			@ApiResponse(code = 404, message = "The validation project with the specified id was not found in the databse"),
+			@ApiResponse(code = 400, message = "The validation project with the id provided is not in a valid format") })
+	@Transactional
+	@RequestMapping(value = "/rest/api/projects/validation/assets/{aid}/guardedactions", method = RequestMethod.POST, consumes = "application/json")
+	public ResponseEntity<GuardedAction> createGuardedAction(@PathVariable Long aid, @RequestBody GuardedAction action) {
+
+		try {
+			ValidationAsset asset = validationAssetsRepository.findOne(aid);
+			action.setAsset(asset);
+			GuardedAction ac = guardedActionsRepository.save(action);
+			return new ResponseEntity<GuardedAction>(ac, HttpStatus.CREATED);
+		}
 		catch (Exception e) {
 			log.error(e.getMessage());
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -348,6 +458,42 @@ public class ValidationProjectRESTController {
 				return new ResponseEntity<ValidationProject>(p, HttpStatus.CREATED);
 			} else {
 				log.info("Validation project with id: " + project.getId()
+						+ " was not found and therefore can not be updated");
+				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			}
+
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	/*
+	 * This method updates the asset of a validation project and stores it in the database
+	 */
+	@ApiOperation(value = "Update the asset of validation project and store it in the database", nickname = "putValidationProjectAsset", response = ValidationAsset.class)
+	@ApiResponses({
+			@ApiResponse(code = 404, message = "The validation project with the specified id was not found in the databse"),
+			@ApiResponse(code = 400, message = "The validation project with the id provided is not in a valid format") })
+	@RequestMapping(value = "/rest/api/projects/validation/assets", method = RequestMethod.PUT, consumes = "application/json")
+	public ResponseEntity<?> putValidationProjectAsset(@RequestBody ValidationAsset asset) {
+
+		try {
+			
+			ValidationAsset vasset = validationAssetsRepository.findOne(asset.getId());
+			
+			if (vasset != null) {
+				
+				vasset.setRate(asset.getRate());
+				vasset.setTimeunit(asset.getTimeunit());
+				vasset.setSecurityproperty(asset.getSecurityproperty());
+				
+				validationAssetsRepository.save(vasset);
+				log.info("Validation project updated successully " + vasset);
+				
+				return new ResponseEntity<>(HttpStatus.CREATED);
+			} else {
+				log.info("Validation project asset with id: " + asset.getId()
 						+ " was not found and therefore can not be updated");
 				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
 			}

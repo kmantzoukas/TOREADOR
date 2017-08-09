@@ -1,6 +1,6 @@
 package uk.ac.city.toreador.rest.api.jpa.repositories;
 
-import java.util.List;
+import java.util.Set;
 
 import org.springframework.data.repository.CrudRepository;
 
@@ -9,5 +9,5 @@ import uk.ac.city.toreador.rest.api.entities.ValidationProject;
 
 public interface ValidationProjectsRepository extends CrudRepository<ValidationProject, Long>{
 	ValidationProject findById(Long id);
-	List<ValidationProject> findByUser(User user);
+	Set<ValidationProject> findByUser(User user);
 }
