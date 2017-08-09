@@ -357,7 +357,7 @@ public class Translate {
 	    "const double week = 7*day;\n" +
 	    "const double year = 365*day;\n" +
 	    "const double month = year/12;//an approximation\n\n" +
-	    "const int k; // SLA variable\n" +
+	    "//const int k; // SLA variable\n" +
 	    "// const int Xm; // represents amount in properties\n" +
 	    "// const int T; // represents time in properties\n" +
 	    "const int MaxInteger; //= 51; // = max(Xm+1,3,3*k+1);\n\n" +

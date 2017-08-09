@@ -1,13 +1,18 @@
 package uk.ac.city.toreador.rest.api.entities;
 
+import java.util.Set;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
+import javax.persistence.ManyToOne;
+import javax.persistence.OneToMany;
 import javax.persistence.Table;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -23,10 +28,9 @@ public class AtomicService {
 	@Column(name="id", unique=true, nullable=false)
 	private Long id;
 	
-	@ApiModelProperty(required=true, hidden = false)
-	@OneToOne(optional = false, fetch=FetchType.EAGER)
+	@ManyToOne(optional = false, fetch=FetchType.LAZY)
 	@JoinColumn(name = "cid")
-	private Compositeservice compositeService;
+	private CompositeService compositeService;
 	
 	@ApiModelProperty(example = "name", required = true)
 	@Column(name="name", nullable=false)
@@ -35,6 +39,10 @@ public class AtomicService {
 	@ApiModelProperty(hidden = true, example = "", required = false)
 	@Column(name="owl", nullable=true)
 	private byte[] owl;
+	
+	@ApiModelProperty(hidden = true)
+	@OneToMany(mappedBy = "atomicService", fetch=FetchType.EAGER)
+	private Set<Operation> operations;
 
 	public Long getId() {
 		return id;
@@ -43,12 +51,13 @@ public class AtomicService {
 	public void setId(Long id) {
 		this.id = id;
 	}
-
-	public Compositeservice getCompositeService() {
+	
+	@JsonIgnore
+	public CompositeService getCompositeService() {
 		return compositeService;
 	}
 
-	public void setCompositeService(Compositeservice compositeService) {
+	public void setCompositeService(CompositeService compositeService) {
 		this.compositeService = compositeService;
 	}
 
@@ -66,6 +75,14 @@ public class AtomicService {
 
 	public void setOwl(byte[] owl) {
 		this.owl = owl;
+	}
+
+	public Set<Operation> getOperations() {
+		return operations;
+	}
+
+	public void setOperations(Set<Operation> operations) {
+		this.operations = operations;
 	}
 	
 }
