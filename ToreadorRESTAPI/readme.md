@@ -52,6 +52,3 @@ $ mvn -P localhost wildfly:deploy
 All the connection details, necessary for the deployment of the API such as IP address, username, password, etc. are included in the [pom.xml](https://github.com/kmantzoukas/TOREADOR/tree/master/ToreadorRESTAPI/pom.xml) file of the project in the profiles section. 
 
 __IMPORTANT NOTE__: In order to perform any of the operations mentioned above, one needs to be connected at City's VPN at all times. In any other case all the IP addresses mentioned will be unreachable and the system will appear offline.
-
-mvn install:install-file -Dfile=./lib/saxon9he.jar -DgroupId=com.saxonhe -DartifactId=saxonhe -Dversion=9.0 -Dpackaging=jar
-mvn install:install-file -Dfile=./lib/saxon9-xqj.jar -DgroupId=com.saxonica.xqj -DartifactId=saxonica -Dversion=1.0 -Dpackaging=jar
