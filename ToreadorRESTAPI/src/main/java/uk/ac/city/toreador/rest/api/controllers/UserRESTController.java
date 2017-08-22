@@ -59,7 +59,7 @@ public class UserRESTController {
 	    @ApiResponse(code =  400, message ="The user id provided is not in a valid format")
 	})
 	@RequestMapping(value = "/rest/api/users/{id}", method = RequestMethod.GET, produces = "application/json")
-	public ResponseEntity<User> getUserById(@PathVariable Long id) {
+	public ResponseEntity<User> getUserById(@PathVariable Integer id) {
 		
 		User user = null;
 		
