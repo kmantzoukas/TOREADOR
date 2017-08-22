@@ -1,6 +1,6 @@
 ![TOREADOR logo](http://www.toreador-project.eu/wp-content/themes/acqualiofilizzata/images/logo-header.png)
 
-The __TOREADOR REST API__ is a collection of REST services that allows the execution of operations against the TOREADOR database. The database is used to store all the metadata about monitoring and validation projects.
+The __TOREADOR REST API__ is a collection of REST services that allows the execution of operations against the TOREADOR database. The database is used to store all the meta-data for validation and monitoring projects.
 ## Project Requirements
 1. [Apache Maven](https://maven.apache.org/) v3.5.0 to build and run the project
 2. [GIT](https://git-scm.com/) to clone the project for github
