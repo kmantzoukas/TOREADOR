@@ -1,6 +1,8 @@
 package uk.ac.city.toreador.rest.api.entities;
 
-import java.io.Serializable;
+import static javax.persistence.GenerationType.IDENTITY;
+
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.Column;
@@ -9,86 +11,81 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-
-@ApiModel
 @Entity
 @Table(name = "compositeservices", catalog = "toreador")
-public class CompositeService implements Serializable{
-	
-	private static final long serialVersionUID = -1610238853238741904L;
+public class CompositeService implements java.io.Serializable {
 
-	@ApiModelProperty(required = false, example = "36")
-	@Id
-	@GeneratedValue
-	@Column(name="id", unique=true, nullable=false)
-	private Long id;
-	
-	@ApiModelProperty(required=true, hidden = false)
-	@OneToOne(fetch=FetchType.LAZY)
-	@JoinColumn(name = "pid")
-	@JsonIgnore
-	private ValidationProject project;
-	
-	
-	@ApiModelProperty(hidden = true)
-	@OneToMany(mappedBy = "compositeService", fetch=FetchType.EAGER)
-	private Set<AtomicService> atomicServices;
-	
-	
-	@ApiModelProperty(example = "name", required = true)
-	@Column(name="name", nullable=false)
+	private Integer id;
+	private Project project;
 	private String name;
-	
-	@ApiModelProperty(hidden = true, example = "", required = false)
-	@Column(name="owls", nullable=true)
 	private byte[] owls;
+	private Set<AtomicService> atomicServices = new HashSet<AtomicService>(0);
 
-	public Long getId() {
-		return id;
+	public CompositeService() {
 	}
 
-	public void setId(Long id) {
+	public CompositeService(Project project, String name, byte[] owls, Set<AtomicService> atomicServices) {
+		this.project = project;
+		this.name = name;
+		this.owls = owls;
+		this.atomicServices = atomicServices;
+	}
+
+	@Id
+	@GeneratedValue(strategy = IDENTITY)
+
+	@Column(name = "id", unique = true, nullable = false)
+	public Integer getId() {
+		return this.id;
+	}
+
+	public void setId(Integer id) {
 		this.id = id;
 	}
-
-	public ValidationProject getProject() {
-		return project;
+	
+	@JsonIgnore
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "pid")
+	public Project getProject() {
+		return this.project;
 	}
 
-	public void setProject(ValidationProject project) {
+	public void setProject(Project project) {
 		this.project = project;
 	}
 
+	@Column(name = "name", length = 45)
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {
 		this.name = name;
 	}
-
+	
+	@JsonIgnore
+	@Column(name = "owls")
 	public byte[] getOwls() {
-		return owls;
+		return this.owls;
 	}
 
 	public void setOwls(byte[] owls) {
 		this.owls = owls;
 	}
 	
+	@OneToMany(fetch = FetchType.EAGER, mappedBy = "compositeService")
 	public Set<AtomicService> getAtomicServices() {
-		return atomicServices;
+		return this.atomicServices;
 	}
 
 	public void setAtomicServices(Set<AtomicService> atomicServices) {
 		this.atomicServices = atomicServices;
 	}
-	
+
 }

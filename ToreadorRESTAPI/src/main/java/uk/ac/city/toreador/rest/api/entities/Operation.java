@@ -1,5 +1,8 @@
 package uk.ac.city.toreador.rest.api.entities;
 
+import static javax.persistence.GenerationType.IDENTITY;
+
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.Column;
@@ -10,104 +13,114 @@ import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
-import javax.persistence.OneToOne;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-
-@ApiModel
 @Entity
 @Table(name = "operations", catalog = "toreador")
-public class Operation {
-	
-	@ApiModelProperty(required = false, example = "36")
-	@Id
-	@GeneratedValue
-	@Column(name="id", unique=true, nullable=false)
-	private Long id;
-	
-	@ApiModelProperty(example = "name", required = true)
-	@Column(name="name", nullable=false)
-	private String name;
+public class Operation implements java.io.Serializable {
 
-	@ApiModelProperty(required=true, hidden = false)
-	@ManyToOne(optional = false, fetch=FetchType.LAZY)
-	@JoinColumn(name = "aid")
+	private Integer id;
+	private Asset asset;
 	private AtomicService atomicService;
-	
-	@ApiModelProperty(example = "", required = true)
-	@Column(name="inputmessage", nullable=true)
-	private String inputMessageName;
-	
-	@ApiModelProperty(example = "name", required = true)
-	@Column(name="outputmessage", nullable=true)
-	private String outputMessageName;
-	
-	@ApiModelProperty(required=false, hidden = false)
-	@OneToOne(mappedBy="operation", optional = true, fetch=FetchType.EAGER)
-	private Output output;
-	
-	@ApiModelProperty(required=false, hidden = false)
-	@OneToMany(mappedBy="operation", fetch=FetchType.EAGER)
-	private Set<Input> inputs;
-	
-	public Long getId() {
-		return id;
+	private String name;
+	private String inputmessage;
+	private String outputmessage;
+	private Set<Input> inputs = new HashSet<Input>(0);
+	private Set<Output> outputs = new HashSet<Output>(0);
+
+	public Operation() {
 	}
 
-	public void setId(Long id) {
+	public Operation(Asset asset, AtomicService atomicService, String name, String inputmessage,
+			String outputmessage, Set<Input> inputs, Set<Output> outputs) {
+		this.asset = asset;
+		this.atomicService = atomicService;
+		this.name = name;
+		this.inputmessage = inputmessage;
+		this.outputmessage = outputmessage;
+		this.inputs = inputs;
+		this.outputs = outputs;
+	}
+
+	@Id
+	@GeneratedValue(strategy = IDENTITY)
+
+	@Column(name = "id", unique = true, nullable = false)
+	public Integer getId() {
+		return this.id;
+	}
+
+	public void setId(Integer id) {
 		this.id = id;
 	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
+	
 	@JsonIgnore
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "assetId")
+	public Asset getAsset() {
+		return this.asset;
+	}
+
+	public void setAsset(Asset asset) {
+		this.asset = asset;
+	}
+	
+	@JsonIgnore
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "aid")
 	public AtomicService getAtomicService() {
-		return atomicService;
+		return this.atomicService;
 	}
 
 	public void setAtomicService(AtomicService atomicService) {
 		this.atomicService = atomicService;
 	}
 
-	public String getInputMessageName() {
-		return inputMessageName;
+	@Column(name = "name", length = 45)
+	public String getName() {
+		return this.name;
 	}
 
-	public void setInputMessageName(String inputMessageName) {
-		this.inputMessageName = inputMessageName;
+	public void setName(String name) {
+		this.name = name;
 	}
 
-	public String getOutputMessageName() {
-		return outputMessageName;
+	@Column(name = "inputmessage", length = 45)
+	public String getInputmessage() {
+		return this.inputmessage;
 	}
 
-	public void setOutputMessageName(String outputMessageName) {
-		this.outputMessageName = outputMessageName;
+	public void setInputmessage(String inputmessage) {
+		this.inputmessage = inputmessage;
 	}
 
-	public Output getOutput() {
-		return output;
+	@Column(name = "outputmessage", length = 45)
+	public String getOutputmessage() {
+		return this.outputmessage;
 	}
 
-	public void setOutput(Output output) {
-		this.output = output;
+	public void setOutputmessage(String outputmessage) {
+		this.outputmessage = outputmessage;
 	}
 
+	@OneToMany(fetch = FetchType.EAGER, mappedBy = "operation")
 	public Set<Input> getInputs() {
-		return inputs;
+		return this.inputs;
 	}
 
 	public void setInputs(Set<Input> inputs) {
 		this.inputs = inputs;
 	}
-	
+
+	@OneToMany(fetch = FetchType.EAGER, mappedBy = "operation")
+	public Set<Output> getOutputs() {
+		return this.outputs;
+	}
+
+	public void setOutputs(Set<Output> outputs) {
+		this.outputs = outputs;
+	}
+
 }

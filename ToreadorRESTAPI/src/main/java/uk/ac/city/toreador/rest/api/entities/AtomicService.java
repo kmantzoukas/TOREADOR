@@ -1,5 +1,8 @@
 package uk.ac.city.toreador.rest.api.entities;
 
+import static javax.persistence.GenerationType.IDENTITY;
+
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.persistence.Column;
@@ -14,75 +17,76 @@ import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-
-@ApiModel
 @Entity
 @Table(name = "atomicservices", catalog = "toreador")
-public class AtomicService {
-	
-	@ApiModelProperty(required = false, example = "36")
-	@Id
-	@GeneratedValue
-	@Column(name="id", unique=true, nullable=false)
-	private Long id;
-	
-	@ManyToOne(optional = false, fetch=FetchType.LAZY)
-	@JoinColumn(name = "cid")
-	private CompositeService compositeService;
-	
-	@ApiModelProperty(example = "name", required = true)
-	@Column(name="name", nullable=false)
-	private String name;
-	
-	@ApiModelProperty(hidden = true, example = "", required = false)
-	@Column(name="owl", nullable=true)
-	private byte[] owl;
-	
-	@ApiModelProperty(hidden = true)
-	@OneToMany(mappedBy = "atomicService", fetch=FetchType.EAGER)
-	private Set<Operation> operations;
+public class AtomicService implements java.io.Serializable {
 
-	public Long getId() {
-		return id;
+	private Integer id;
+	private CompositeService compositeService;
+	private String name;
+	private byte[] owl;
+	private Set<Operation> operations = new HashSet<Operation>(0);
+
+	public AtomicService() {
 	}
 
-	public void setId(Long id) {
+	public AtomicService(CompositeService compositeService, String name, byte[] owl, Set<Operation> operations) {
+		this.compositeService = compositeService;
+		this.name = name;
+		this.owl = owl;
+		this.operations = operations;
+	}
+
+	@Id
+	@GeneratedValue(strategy = IDENTITY)
+
+	@Column(name = "id", unique = true, nullable = false)
+	public Integer getId() {
+		return this.id;
+	}
+
+	public void setId(Integer id) {
 		this.id = id;
 	}
 	
 	@JsonIgnore
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "cid")
 	public CompositeService getCompositeService() {
-		return compositeService;
+		return this.compositeService;
 	}
 
 	public void setCompositeService(CompositeService compositeService) {
 		this.compositeService = compositeService;
 	}
 
+	@Column(name = "name", length = 45)
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {
 		this.name = name;
 	}
-
+	
+	@JsonIgnore
+	@Column(name = "owl")
 	public byte[] getOwl() {
-		return owl;
+		return this.owl;
 	}
 
 	public void setOwl(byte[] owl) {
 		this.owl = owl;
 	}
-
+	
+	@JsonIgnore
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "atomicService")
 	public Set<Operation> getOperations() {
-		return operations;
+		return this.operations;
 	}
 
 	public void setOperations(Set<Operation> operations) {
 		this.operations = operations;
 	}
-	
+
 }

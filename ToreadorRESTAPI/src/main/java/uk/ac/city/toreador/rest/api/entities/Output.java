@@ -1,6 +1,6 @@
 package uk.ac.city.toreador.rest.api.entities;
 
-import java.io.Serializable;
+import static javax.persistence.GenerationType.IDENTITY;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -8,71 +8,81 @@ import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
-import javax.persistence.OneToOne;
+import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-
-@ApiModel(value = "User", description = "An entity that represents the output of an operation.")
 @Entity
 @Table(name = "outputs", catalog = "toreador")
-public class Output implements Serializable{
-	
-	private static final long serialVersionUID = -1350259611685507551L;
+public class Output implements java.io.Serializable {
 
-	@ApiModelProperty(example = "2", readOnly = true, required = false)
-	@Id
-	@GeneratedValue
-	@Column(name="id", unique=true, nullable=false)
-	private Long id;
-	
-	@ApiModelProperty(example = "", readOnly = false, required = true)
-	@Column(name="name", nullable=false)
-	private String name;
-	
-	@ApiModelProperty(example = "OPERATION", allowableValues = "")
-	@Column(name="type", nullable=false)
-	private String type;
-	
-	@ApiModelProperty(required=true, hidden = false)
-	@OneToOne(fetch=FetchType.LAZY)
-	@JoinColumn(name = "oid")
+	private Integer id;
+	private Asset asset;
 	private Operation operation;
+	private String name;
+	private String type;
 
-	public Long getId() {
-		return id;
+	public Output() {
 	}
 
-	public void setId(Long id) {
+	public Output(Asset asset, Operation operation, String name, String type) {
+		this.asset = asset;
+		this.operation = operation;
+		this.name = name;
+		this.type = type;
+	}
+
+	@Id
+	@GeneratedValue(strategy = IDENTITY)
+
+	@Column(name = "id", unique = true, nullable = false)
+	public Integer getId() {
+		return this.id;
+	}
+
+	public void setId(Integer id) {
 		this.id = id;
 	}
+	
+	@JsonIgnore
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "assetId")
+	public Asset getAsset() {
+		return this.asset;
+	}
 
+	public void setAsset(Asset asset) {
+		this.asset = asset;
+	}
+	
+	@JsonIgnore
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "oid")
+	public Operation getOperation() {
+		return this.operation;
+	}
+
+	public void setOperation(Operation operations) {
+		this.operation = operations;
+	}
+
+	@Column(name = "name", length = 45)
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {
 		this.name = name;
 	}
 
+	@Column(name = "type", length = 45)
 	public String getType() {
-		return type;
+		return this.type;
 	}
 
 	public void setType(String type) {
 		this.type = type;
 	}
-	
-	@JsonIgnore
-	public Operation getOperation() {
-		return operation;
-	}
 
-	public void setOperation(Operation operation) {
-		this.operation = operation;
-	}
-	
 }

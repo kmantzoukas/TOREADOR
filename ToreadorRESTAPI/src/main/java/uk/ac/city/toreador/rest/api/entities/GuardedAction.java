@@ -1,89 +1,103 @@
 package uk.ac.city.toreador.rest.api.entities;
 
+import static javax.persistence.GenerationType.IDENTITY;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
-import javax.persistence.EnumType;
-import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
+import javax.persistence.JoinColumns;
 import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-
-@ApiModel
 @Entity
 @Table(name = "guardedactions", catalog = "toreador")
-public class GuardedAction {
+public class GuardedAction implements java.io.Serializable {
 
-	@ApiModelProperty(required = false, example = "10")
-	@Id
-	@GeneratedValue
-	@Column(name = "id", unique = true, nullable = false)
-	private Long id;
-
-	@ApiModelProperty(required = true, hidden = false)
-	@ManyToOne(optional = false, fetch = FetchType.LAZY)
-	@JoinColumn(name = "aid")
-	private ValidationAsset asset;
-
-	@ApiModelProperty(example = "RENEGOTIATE", allowableValues = "PENALTY,RENEGOTIATE,OTHER")
-	@Column(name="action", nullable=false)
-	@Enumerated(EnumType.STRING)
-	private GuardedActionType action;
-
-	@ApiModelProperty(example = "")
-	@Column(name = "penalty", nullable = true)
-	private Float penalty;
-
-	@ApiModelProperty(example = "")
-	@Column(name = "guard", nullable = true)
+	private Integer id;
+	private AssetSecurityPropertyPair assetSecurityPropertyPair;
+	private String action;
+	private Integer penalty;
 	private String guard;
+	private String name;
 
-	public Long getId() {
-		return id;
+	public GuardedAction() {
 	}
 
-	public void setId(Long id) {
+	public GuardedAction(AssetSecurityPropertyPair assetSecurityPropertyPair, String action, Integer penalty, String guard, String name) {
+		this.assetSecurityPropertyPair = assetSecurityPropertyPair;
+		this.action = action;
+		this.penalty = penalty;
+		this.guard = guard;
+		this.name = name;
+	}
+
+	@Id
+	@GeneratedValue(strategy = IDENTITY)
+
+	@Column(name = "id", unique = true, nullable = false)
+	public Integer getId() {
+		return this.id;
+	}
+
+	public void setId(Integer id) {
 		this.id = id;
 	}
 	
 	@JsonIgnore
-	public ValidationAsset getAsset() {
-		return asset;
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumns({
+		  @JoinColumn(name = "aid", insertable = true, updatable = false),
+		  @JoinColumn(name = "spid", insertable = true, updatable = false)
+		})
+	public AssetSecurityPropertyPair getAssetSecurityPropertyPair() {
+		return this.assetSecurityPropertyPair;
+	}
+	
+	@JsonProperty
+	public void setAssetSecurityPropertyPair(AssetSecurityPropertyPair assetSecurityPropertyPair) {
+		this.assetSecurityPropertyPair = assetSecurityPropertyPair;
 	}
 
-	public void setAsset(ValidationAsset asset) {
-		this.asset = asset;
+	@Column(name = "action", length = 11)
+	public String getAction() {
+		return this.action;
 	}
 
-	public GuardedActionType getAction() {
-		return action;
-	}
-
-	public void setAction(GuardedActionType action) {
+	public void setAction(String action) {
 		this.action = action;
 	}
 
-	public Float getPenalty() {
-		return penalty;
+	@Column(name = "penalty")
+	public Integer getPenalty() {
+		return this.penalty;
 	}
 
-	public void setPenalty(Float penalty) {
+	public void setPenalty(Integer penalty) {
 		this.penalty = penalty;
 	}
 
+	@Column(name = "guard", length = 65535)
 	public String getGuard() {
-		return guard;
+		return this.guard;
 	}
 
 	public void setGuard(String guard) {
 		this.guard = guard;
 	}
-	
+
+	@Column(name = "name", length = 45)
+	public String getName() {
+		return this.name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
 }
