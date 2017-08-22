@@ -43,7 +43,7 @@ public class SpringConfiguration {
 
 	@Autowired
 	Environment env;
-
+	
 	@Bean
 	public Docket toreadorAPI() {
 		return new Docket(DocumentationType.SWAGGER_2).select()
@@ -54,7 +54,7 @@ public class SpringConfiguration {
 				.genericModelSubstitutes(ResponseEntity.class)
 				.apiInfo(apiInfo());
 	}
-
+	
 	private ApiInfo apiInfo() {
 
 		final String title = env.getProperty("swagger.api.title");
@@ -77,9 +77,9 @@ public class SpringConfiguration {
 		ComboPooledDataSource cpds = new ComboPooledDataSource();
 
 		cpds.setDriverClass("com.mysql.jdbc.Driver");
-		cpds.setJdbcUrl(env.getProperty("db.url"));
-		cpds.setUser(env.getProperty("db.username"));
-		cpds.setPassword(env.getProperty("db.password"));
+		cpds.setJdbcUrl(env.getProperty("url"));
+		cpds.setUser(env.getProperty("username"));
+		cpds.setPassword(env.getProperty("password"));
 
 		return cpds;
 	}
