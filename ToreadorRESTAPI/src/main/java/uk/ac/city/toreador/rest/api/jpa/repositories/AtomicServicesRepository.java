@@ -4,6 +4,6 @@ import org.springframework.data.repository.CrudRepository;
 
 import uk.ac.city.toreador.rest.api.entities.AtomicService;
 
-public interface AtomicServicesRepository extends CrudRepository<AtomicService, Long>{
+public interface AtomicServicesRepository extends CrudRepository<AtomicService, Integer>{
 	
 }
