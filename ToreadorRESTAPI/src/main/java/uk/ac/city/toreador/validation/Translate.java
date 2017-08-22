@@ -5,7 +5,9 @@ import java.lang.reflect.Method;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -24,6 +26,10 @@ import org.ggf.schemas.graap._2007._03.ws_agreement.AgreementType;
 import org.ggf.schemas.graap._2007._03.ws_agreement.CustomBusinessValueType;
 import org.ggf.schemas.graap._2007._03.ws_agreement.GuaranteeTermType;
 import org.ggf.schemas.graap._2007._03.ws_agreement.GuardedActionType;
+import org.ggf.schemas.graap._2007._03.ws_agreement.Other;
+import org.ggf.schemas.graap._2007._03.ws_agreement.Penalty;
+import org.ggf.schemas.graap._2007._03.ws_agreement.ReNegotiate;
+import org.ggf.schemas.graap._2007._03.ws_agreement.TActionAbs;
 import org.ggf.schemas.graap._2007._03.ws_agreement.TermType;
 import org.ggf.schemas.graap._2007._03.ws_agreement.Terms;
 
@@ -32,25 +38,25 @@ public class Translate {
     static public EvalNode timeUnit;
     // functionsN - N is the number of parameters
     final private static String functions0[] = {// "DetectedAnomalies"
-                                              // , "DetectedConflicts"
-                                              // , "ResolvedAnomalies"
-                                              // , "ResolvedConflicts"
-                                              // , "SatisfiedAssertions"
-                                              // , "SeenEvents"
-                                              // , "UnresolvedAnomalies"
-                                              // , "UnresolvedConflicts"
-                                              // , "ValidityChecksSatisfied" // BOOL ?
-                                              // , "ViolatedAssertions"
-					      // Toreador
+	// , "DetectedConflicts"
+	// , "ResolvedAnomalies"
+	// , "ResolvedConflicts"
+	// , "SatisfiedAssertions"
+	// , "SeenEvents"
+	// , "UnresolvedAnomalies"
+	// , "UnresolvedConflicts"
+	// , "ValidityChecksSatisfied" // BOOL ?
+	// , "ViolatedAssertions"
+	// Toreador
     };
     final private static String functions1[] = {
-					      // Toreador
-                                              "Violations"
-                                              , "PenaltyAmount"
+	// Toreador
+	"Violations"
+	, "PenaltyAmount"
     };
     final private static String functions2[] = {
-					      // Toreador
-                                              "Counter"
+	// Toreador
+	"Counter"
     };
 
     // static public String getLispCode() {
@@ -65,6 +71,21 @@ public class Translate {
     static public HashMap<String, IDInfo>  idTypeMap;
     // static public Boolean clockVarIsLvalue = false;
 
+    static private Set<String> usedGTs = new HashSet<String>();
+    static private Set<String> declaredGTs = new HashSet<String>();
+    static private Set<String> usedActionGTs = new HashSet<String>();
+    static private Set<String> declaredActionGTs = new HashSet<String>();
+    static private void clearKnownGTsActions() {
+	usedGTs.clear();
+	declaredGTs.clear();
+	usedActionGTs.clear();
+	declaredGTs.clear();
+    }
+    static public void usedGT(String n) { usedGTs.add(n); }
+    static public void usedActionGT(String a, String g) { usedActionGTs.add(a + ":" + g); }
+    static public void declaredGT(String n) { declaredGTs.add(n); }
+    static public void declaredActionGT(String a, String g) { declaredActionGTs.add(a + ":" + g); }
+
     static private String toPrism = ""
         , toLisp = ";; -*- mode: Lisp ; -*-\n\n"
 	+ "(progn\n  (in-package \"COMMON-LISP-USER\")\n\n";
@@ -74,21 +95,21 @@ public class Translate {
         , refuseGuard = "false"
         , revokeGuard = "false"
         , expireGuard = "false"
-    /*
-     * XXXGuardLisp is used to collect all the guards of the XXX
-     * action so that it's used in the final negation.
-     *
-     * XXXGuardEachLisp is a guard that must be added to the guard of
-     * each XXX transition, to simulate the composition with the
-     * high-level lifecycle automaton (see module Lifecycle).
-     * WHY NOT ADD IT TO THE FINAL NEGATED TRANSITION AS WELL? SHOULD
-     * IT HAVE IT? SHOULD THE PRISM FINAL NEGATED TRANSITION ALSO HAVE
-     * IT?
-     *
-     * XXXBasicActionEachLisp is an action that must be added to the
-     * action of each XXX transition, to simulate the composition with
-     * the high-level lifecycle automaton (see module Lifecycle).
-     */
+	/*
+	 * XXXGuardLisp is used to collect all the guards of the XXX
+	 * action so that it's used in the final negation.
+	 *
+	 * XXXGuardEachLisp is a guard that must be added to the guard of
+	 * each XXX transition, to simulate the composition with the
+	 * high-level lifecycle automaton (see module Lifecycle).
+	 * WHY NOT ADD IT TO THE FINAL NEGATED TRANSITION AS WELL? SHOULD
+	 * IT HAVE IT? SHOULD THE PRISM FINAL NEGATED TRANSITION ALSO HAVE
+	 * IT?
+	 *
+	 * XXXBasicActionEachLisp is an action that must be added to the
+	 * action of each XXX transition, to simulate the composition with
+	 * the high-level lifecycle automaton (see module Lifecycle).
+	 */
         , issueGuardLisp  = "     (or\n"
         , refuseGuardLisp = "     (or\n"
         , revokeGuardLisp = "     (or\n"
@@ -115,12 +136,12 @@ public class Translate {
         + " *expired* (1+ *expired*))\n";
 
     static {
-//        // Ensure that the code runs with assertions enabled - refuse
-//        // to execute otherwise.
-//        boolean assertsEnabled = false;
-//        assert assertsEnabled = true; // Intentional side effect!!!
-//        if (!assertsEnabled)
-//            throw new java.lang.RuntimeException("Asserts must be enabled!!! Use -enableassertions");
+        // Ensure that the code runs with assertions enabled - refuse
+        // to execute otherwise.
+        boolean assertsEnabled = false;
+        assert assertsEnabled = true; // Intentional side effect!!!
+        if (!assertsEnabled)
+            throw new java.lang.RuntimeException("Asserts must be enabled!!! Use -enableassertions");
 
         idTypeMap = new HashMap<String, IDInfo>();
         String keywordsINT[] = {// Prism reserved keywords: ALL INT (HACK)
@@ -301,6 +322,7 @@ public class Translate {
     // }
     
     public String[] translateSLAtoPrismAndLisp(java.io.InputStream SLAinput) throws JAXBException, Exception {
+	Translate.clearKnownGTsActions();
 	String[] result = new String[2];
 	
         // synchronized (Translate.class) { if(completed) return; }
@@ -328,9 +350,9 @@ public class Translate {
             AccessController.doPrivileged(new PrivilegedAction<Terms>() {
                     public Terms run() {
                         try {
-                        	Object o = um.unmarshal(SLAinput);
-                        	JAXBElement<AgreementType> a = (JAXBElement<AgreementType>)o;
-                        	Terms cmt1 = (Terms)a.getValue().getTerms();
+			    Object o = um.unmarshal(SLAinput);
+			    JAXBElement<AgreementType> a = (JAXBElement<AgreementType>)o;
+			    Terms cmt1 = (Terms)a.getValue().getTerms();
                         	
 
                             assert (cmt1!=null) : "um.unmarshal returned null";
@@ -348,6 +370,27 @@ public class Translate {
         assert (lc!=null) : "cmt.getGuaranteeTerms returned null";
         Visitable lcycle = new VisitableImpl(cmt);
         EvalNode node = lcycle.accept(eval);
+	// Check that GT names used (Violations(_gt_),
+	// PenaltyAmount(_gt_), counter(action,_gt_)) have been
+	// declared.
+	Translate.usedGTs.removeAll(Translate.declaredGTs);
+	if (!Translate.usedGTs.isEmpty()) {
+	    String badNames = "===> WS Agreement uses undeclared GT names\n(check <asrt:Violations>, <asrt:PenaltyAmount>, <asrt:Counter>): <===";
+	    for (String s : Translate.usedGTs)
+		badNames += "\n\t===> " + s + " <===";
+	    throw new Exception(badNames);
+	}
+	// Check that (Action, GT) name pairs used (counter(_action_,
+	// _gt_)) have been declared.
+	Translate.usedActionGTs.removeAll(Translate.declaredActionGTs);
+	if (!Translate.usedActionGTs.isEmpty()) {
+	    String badNames = "===> WS Agreement uses undeclared (Action,GT) name pairs\n(Check action names in <asrt:Counter><asrt:Id name=\"ActionName\"/><asrt:Id name=\"GTname\"/></asrt:Counter>): <===";
+	    for (String s : Translate.usedActionGTs)
+		badNames += "\n\t===> " + s + " <===";
+	    throw new Exception(badNames);
+	}
+	Translate.clearKnownGTsActions();
+	// All names declared - continue translation.
         Translate.toPrism =
 	    "// -*- mode: c++ ; -*-\n" +
 	    "ctmc // A Continuous-Time Markov Chain model\n\n" +
@@ -357,9 +400,9 @@ public class Translate {
 	    "const double week = 7*day;\n" +
 	    "const double year = 365*day;\n" +
 	    "const double month = year/12;//an approximation\n\n" +
-	    "//const int k; // SLA variable\n" +
-	    "// const int Xm; // represents amount in properties\n" +
-	    "// const int T; // represents time in properties\n" +
+//	    "const int k; // SLA variable\n" +
+//	    "// const int Xm; // represents amount in properties\n" +
+//	    "// const int T; // represents time in properties\n" +
 	    "const int MaxInteger; //= 51; // = max(Xm+1,3,3*k+1);\n\n" +
 	    node.toPrism;
         Translate.toLisp +=
@@ -571,232 +614,250 @@ class Evaluator implements ReflectiveVisitor {
         return className.substring(className.lastIndexOf('.')+1);
     }
 
-    public EvalNode visitObjectTerms(org.ggf.schemas.graap._2007._03.ws_agreement.Terms type) {
-    	 ReflectiveVisitor eval = new Evaluator();
+    public EvalNode visitObjectTerms(org.ggf.schemas.graap._2007._03.ws_agreement.Terms type) throws Exception {
+	ReflectiveVisitor eval = new Evaluator();
     	 
-    	 String wsresult = "";
-    	 String wsresult2 = "";
-    	 String wsresult3 = "";
-    	 String wsresult4 = "";
-    	 String wsresult5 = "";
-    	 String wsresult6 = "";
-    	 String wsresult7 = "";
-    	 String wsresult8 = "";
+	String wsresult = "";
+	String PrismGTViolationModules = "";
+	String PrismGuardFormulas = "";
+	String PrismVariableINCFormulas = "";
+	String PrismVariableDeclarations = "";
+	String PrismTransitionBodies = "";
+	String PrismTransitionAssignments = "";
+	String PrismRewardsDefinitions = "";
+	String PrismTransitionBodyHead = "(SLAactive' = ! (false))\n";
 
-	 List<LispGTRec> LispGTRecs = new  java.util.ArrayList<LispGTRec>();
-    	 List<GuaranteeTermType> listOfGts = new java.util.ArrayList<GuaranteeTermType>();
-	 String LispVars = "";
-	 String PrintVars = "\n(defun print-vars ()"
-	     + "\n  (concatenate 'string"
-	     ;
+	List<LispGTRec> LispGTRecs = new  java.util.ArrayList<LispGTRec>();
+	List<GuaranteeTermType> listOfGts = new java.util.ArrayList<GuaranteeTermType>();
+	String LispVars = "";
+	String PrintVars = "\n(defun print-vars ()"
+	    + "\n  (concatenate 'string"
+	    ;
          
-	 for (Object termType
-		  : type.getAll().getExactlyOnesAndOneOrMoresAndAlls() ) {
-	     JAXBElement<TermType> trm = (JAXBElement<TermType>) termType;
-	     if (trm.getName().getLocalPart().equals("GuaranteeTerm")) {
-		 listOfGts.add((GuaranteeTermType)trm.getValue());
-	     }
-	 }
+	for (Object termType
+		 : type.getAll().getExactlyOnesAndOneOrMoresAndAlls() ) {
+	    JAXBElement<TermType> trm = (JAXBElement<TermType>) termType;
+	    if (trm.getName().getLocalPart().equals("GuaranteeTerm")) {
+		listOfGts.add((GuaranteeTermType)trm.getValue());
+	    }
+	}
 
-	 for (GuaranteeTermType gto : listOfGts) {
-	     String gtname = gto.getName();
-	     LispVars += "\n(defparameter *violations-" + gtname + "* 0)";
-	     PrintVars += "\n  (format nil \"" + Q + "*violations-"
-		 + gtname
-		 + "*" + U + " : " + Q + "~A" + U + ",~%\" *violations-" + gtname + "*)";
+	for (GuaranteeTermType gto : listOfGts) {
+	    String gtname = gto.getName();
+	    Translate.declaredGT(gtname);
+	    PrismVariableDeclarations += "violations_" + gtname
+		+ " : [0 .. MaxInteger] init 0;\n";
+	    PrismTransitionBodies += "\n[" + gtname + "Violated]  SLAactive -> 1:";
+	    PrismTransitionAssignments = "";
+	    PrismTransitionBodyHead = "(SLAactive' = ! (false))\n"; // DEFAULT - RESET FOR EACH GT.
+	    LispVars += "\n(defparameter *violations-" + gtname + "* 0)";
+	    PrintVars += "\n  (format nil \"" + Q + "*violations-"
+		+ gtname
+		+ "*" + U + " : " + Q + "~A" + U + ",~%\" *violations-" + gtname + "*)";
 
-	     wsresult2 += "module "
-		 + gtname +
-         	 "\n[" + gtname + "Violated] true -> " +gtname
-		 + "ViolationRate : true;\n"
-         	 + "endmodule\n";
-         	 
-	     wsresult5 += "violations_" + gtname
-		 + " : [0 .. MaxInteger] init 0;\n";
-	     wsresult6 += "\n[" + gtname + "Violated]  SLAactive -> 1:";
-	     wsresult7 = "";
-         	 
-	     wsresult8 += "\nrewards \""
-		 + gtname + "Violations\" // expected number of times it is violated\n" 
-         	 + "   [" + gtname + "Violated] true: 1; \nendrewards\n";
+	    PrismGTViolationModules += "module "
+		+ gtname +
+		"\n[" + gtname + "Violated] true -> " +gtname
+		+ "ViolationRate : true;\n"
+		+ "endmodule\n";
+	    PrismRewardsDefinitions += "\nrewards \""
+		+ gtname + "Violations\" // expected number of times it is violated\n" 
+		+ "   [" + gtname + "Violated] true: 1; \nendrewards\n";
 
-	     List<CustomBusinessValueType> listOfGuards = gto.getBusinessValueList().getCustomBusinessValues();
-	     for (CustomBusinessValueType grd : listOfGuards) {
-	     	 CustomBusinessValueType.Rate rate = grd.getRate(); // XXX
-	     	 Visitable rateV = new VisitableImpl(rate.getExprNumericalAbs().getValue());
-	     	 EvalNode rateNode = rateV.accept(eval);
-	     	 wsresult += "formula " +gtname + "ViolationRate = "
-	     	     + rateNode.toPrism
-	     	     + ";\n";
+	    List<CustomBusinessValueType> listOfGuards =
+		gto.getBusinessValueList().getCustomBusinessValues();
+	    for (CustomBusinessValueType grd : listOfGuards) {
+		CustomBusinessValueType.Rate rate = grd.getRate(); // XXX
+		Visitable rateV = new VisitableImpl(rate.getExprNumericalAbs().getValue());
+		EvalNode rateNode = rateV.accept(eval);
+		wsresult += "formula " +gtname + "ViolationRate = "
+		    + rateNode.toPrism
+		    + ";\n";
 
-	     	 List<GuardedActionType>listOfActions = grd.getGuardedActions();
-		 /* ONLY ONCE PER gtname ! */
-	     	 wsresult4 += "\nformula INCviolations_" + gtname
-	     	     + " = (min(MaxInteger,violations_" + gtname + "+1));\n";
+		List<GuardedActionType>listOfActions = grd.getGuardedActions();
+		/* ONLY ONCE PER gtname ! */
+		PrismVariableINCFormulas += "\nformula INCviolations_" + gtname
+		    + " = (min(MaxInteger,violations_" + gtname + "+1));\n";
 
-		 List<LispActionRec> LispGTActionRecs
-		     = new java.util.ArrayList<LispActionRec>();
-	     	 for(int y=0; y< listOfActions.size(); y++) {
-	     	     org.ggf.schemas.graap._2007._03.ws_agreement.TActionAbs actionA = listOfActions.get(y).getActionAbs().getValue();
-	     	     String action = (actionA instanceof org.ggf.schemas.graap._2007._03.ws_agreement.Penalty)
-	     		 ? "Penalty"
-	     		 : ((actionA instanceof org.ggf.schemas.graap._2007._03.ws_agreement.ReNegotiate)
-	     		    ?
-	     		    "ReNegotiate"
-	     		    : ((org.ggf.schemas.graap._2007._03.ws_agreement.Other) actionA).getActionName());
-      	    
-	     	     JAXBElement<? extends TExprBooleanAbs> exprJAXBElement = listOfActions.get(y).getValueExpr().getExprBooleanAbs();
-	     	     TExprBooleanAbs expr = exprJAXBElement.getValue();
-	     	     Visitable pdw = new VisitableImpl(expr);
-	     	     Evaluator.GLOB_Current_GTName = gtname;
-	     	     EvalNode pdecl = pdw.accept(eval);
-	     	     Evaluator.GLOB_Current_GTName = null;   
-	     	     wsresult3 += "\nformula guard_" + action + gtname
-	     		 + " = "
-	     		 + pdecl.toPrism
-	     		 + ";";
-		     String LispGTActionGuard = pdecl.toLisp;
-		     String LispGTActionUpdate = "\n	 (setq res (concatenate 'string res (format nil \" " + Q + "~A" + U + ",~%\" \"" + action + "\")))";
-		     java.math.BigInteger penalty = java.math.BigInteger.ZERO;
+		List<LispActionRec> LispGTActionRecs
+		    = new java.util.ArrayList<LispActionRec>();
+		for(int y=0; y< listOfActions.size(); y++) {
+		    TActionAbs actionA =
+			listOfActions.get(y).getActionAbs().getValue();
+		    String action =
+			(actionA instanceof Penalty)
+			? "Penalty"
+			: ((actionA instanceof ReNegotiate)
+			   ? "ReNegotiate"
+			   : ((Other) actionA).getActionName());
+		    Translate.declaredActionGT(action, gtname);
+
+		    JAXBElement<? extends TExprBooleanAbs> exprJAXBElement =
+			listOfActions.get(y).getValueExpr().getExprBooleanAbs();
+		    TExprBooleanAbs expr = exprJAXBElement.getValue();
+		    Visitable pdw = new VisitableImpl(expr);
+		    Evaluator.GLOB_Current_GTName = gtname;
+		    EvalNode pdecl = pdw.accept(eval);
+		    Evaluator.GLOB_Current_GTName = null;   
+		    PrismGuardFormulas += "\nformula guard_" + action + gtname
+			+ " = "
+			+ pdecl.toPrism
+			+ ";";
+		    String LispGTActionGuard = pdecl.toLisp;
+		    String LispGTActionUpdate =
+			"\n	 (setq res (concatenate 'string res (format nil \" "
+			+ Q + "~A" + U + ",~%\" \"" + action + "\")))";
+		    java.math.BigInteger penalty = java.math.BigInteger.ZERO;
 		     
-	     	     if(!(actionA instanceof org.ggf.schemas.graap._2007._03.ws_agreement.ReNegotiate)) {	
-			 LispVars += "\n(defparameter *counter-" + gtname
-			     + "-" + action
-			     + "* 0)";
-			 PrintVars += "\n  (format nil \"" + Q + "*counter-"
-			     + gtname + "-" + action
-			     + "*" + U + " : " + Q + "~A" + U + ", ~%\" *counter-"
-			     + gtname + "-" + action + "*)";
-			 LispGTActionUpdate += "\n	 (incf *counter-"
-			     + gtname
-			     + "-" + action
-			     + "*)";
-			 wsresult4 += "formula INCcounter_"
-			     + action + "_" + gtname + 
-	     		     "= (min(MaxInteger,counter_"
-			     + action + "_" + gtname
-			     + "+(guard_" + action + gtname + 
-	     		     "?1:0)));\n";
+		    if(!(actionA instanceof ReNegotiate)) {	
+			PrismVariableDeclarations +=
+			    "counter_" + action + "_" + gtname
+			    + " : [0 .. MaxInteger] init 0;\n";
+			LispVars += "\n(defparameter *counter-" + gtname
+			    + "-" + action
+			    + "* 0)";
+			PrintVars += "\n  (format nil \"" + Q + "*counter-"
+			    + gtname + "-" + action
+			    + "*" + U + " : " + Q + "~A" + U
+			    + ", ~%\" *counter-"
+			    + gtname + "-" + action + "*)";
+
+			PrismVariableINCFormulas += "formula INCcounter_"
+			    + action + "_" + gtname + 
+			    "= (min(MaxInteger,counter_"
+			    + action + "_" + gtname
+			    + "+(guard_" + action + gtname + 
+			    "?1:0)));\n";
+			PrismTransitionAssignments +=
+			    "\n & (counter_" + action + "_" + gtname
+			    + "'=INCcounter_" + action + "_" + gtname + ")";
+			LispGTActionUpdate += "\n	 (incf *counter-"
+			    + gtname
+			    + "-" + action
+			    + "*)";
 			 
-	     		 wsresult5 += "counter_" + action + "_" + gtname
-	     		     + " : [0 .. MaxInteger] init 0;\n";
+			if (actionA instanceof Penalty) {
+			    PrismVariableDeclarations +=
+				"penalty_amount_" +  gtname
+				+ " : [0 .. MaxInteger] init 0;\n";
+			    LispVars +=
+				"\n(defparameter *penalty-amount-" + gtname
+				+ "-" + action
+				+ "* 0)";
+			    PrintVars += "\n  (format nil \"" + Q
+				+ "*penalty-amount-"
+				+ gtname + "-" + action
+				+ "*" + U + " : "
+				+ Q + "~A" + U + ",~%\" *penalty-amount-"
+				+ gtname + "-" + action + "*)";
 
-	     		 wsresult7 += "\n & (counter_" + action + "_" + gtname
-	     		     + "'=INCcounter_" + action + "_" + gtname + ")";
-
-	     		 if (actionA instanceof org.ggf.schemas.graap._2007._03.ws_agreement.Penalty) {
-	     		     wsresult4 += "formula INCpenalty_amount_"
-	     			 + gtname
-	     			 + " = (min(MaxInteger, penalty_amount_"
-	     			 + gtname
-	     			 + "+(guard_Penalty"
-	     			 + gtname
-	     			 + "?";
-	     		     java.math.BigInteger val =
-	     			 ((org.ggf.schemas.graap._2007._03.ws_agreement.Penalty) actionA).getValue();
-			     penalty = val;
-	     		     if (null == val)
-	     			 wsresult4 += "NULL";
-	     		     else
-	     			 wsresult4 += val;
-	     		     wsresult4 += ":0)));";
-			 LispVars += "\n(defparameter *penalty-amount-" + gtname
-			     + "-" + action
-			     + "* 0)";
-			 PrintVars += "\n  (format nil \"" + Q
-			     + "*penalty-amount-"
-			     + gtname + "-" + action
-			     + "*" + U + " : "
-			     + Q + "~A" + U + ",~%\" *penalty-amount-"
-			     + gtname + "-" + action + "*)";
-			 LispGTActionUpdate += "\n	 (incf *penalty-amount-"
-			     + gtname + "* " + val + ")";
-			 
-	     		 wsresult5 += "penalty_amount_" +  gtname
-	     		     + " : [0 .. MaxInteger] init 0;\n";
-
-	     		 wsresult7 += "\n & (penalty_amount_" + gtname
-	     		     + "'=INCpenalty_amount_" + gtname + ")";
-	     		 }
-	     	     } else {
-	     		 wsresult6 += "\n(SLAactive'=  ! (guard_"
-	     		     + action + gtname + "))\n" 
-	     		     + " & (violations_" + gtname
-	     		     + "'=INCviolations_" + gtname + ")"
-	     		     + wsresult7 +"\n ;\n"; 
-	     	     }
-
-		     LispActionRec lispActionRec
-			 = new LispActionRec(action
-					     , LispGTActionGuard
-					     , LispGTActionUpdate
-					     , penalty);
-
-		     LispGTActionRecs.add(lispActionRec);
-	     	 }
-		 LispGTRec lispGTRec = new LispGTRec(gtname, LispGTActionRecs);
-		 LispGTRecs.add(lispGTRec);
+			    PrismVariableINCFormulas +=
+				"formula INCpenalty_amount_"
+				+ gtname
+				+ " = (min(MaxInteger, penalty_amount_"
+				+ gtname
+				+ "+(guard_Penalty"
+				+ gtname
+				+ "?";
+			    java.math.BigInteger val =
+				((Penalty) actionA).getValue();
+			    penalty = val;
+			    if (null == val) { // SHOULD NEVER HAPPEN
+				PrismVariableINCFormulas += "NULL";
+				throw new Exception("===> Penalty amount is null - MUST be an *integer* <===");
+			    } else
+				PrismVariableINCFormulas += val;
+			    PrismVariableINCFormulas += ":0)));";
+			    PrismTransitionAssignments +=
+				"\n & (penalty_amount_" + gtname
+				+ "'=INCpenalty_amount_" + gtname + ")";
+			    LispGTActionUpdate +=
+				"\n	 (incf *penalty-amount-"
+				+ gtname + "* " + val + ")";
+			}    // End of Penalty action
+		    }	      // End of Penalty/Other action
+		    else {	// It's a ReNegotiate action.
+			PrismTransitionBodyHead =
+			    "\n(SLAactive'=  ! (guard_"
+			    + action + gtname + "))\n"; 
+		    }
+		    LispActionRec lispActionRec
+			= new LispActionRec(action
+					    , LispGTActionGuard
+					    , LispGTActionUpdate
+					    , penalty);
+		    LispGTActionRecs.add(lispActionRec);
+		} // FOR listOfActions[y]
+		PrismTransitionBodies +=
+		    PrismTransitionBodyHead
+		    + " & (violations_" + gtname
+		    + "'=INCviolations_" + gtname + ")"
+		    + PrismTransitionAssignments
+		    +"\n ;\n"; 
 		 
-		 // System.err.println("\nGT: "
-		 // 		    + gtname
-		 // 		    + "\n\tVars: " + LispVars
-		 // 		    + "\n\tActions: " + LispGTActions
-		 // 		    + "\n\tGTActionGuard: " + LispGTActionGuard
-		 // 		    + "\n\tGTActionUpdate: " + LispGTActionUpdate
-		 // 		    );
-	     }
-	 }
-	 String toLisp = LispVars + PrintVars + "))";
-	 toLisp += "\n\n(defun java-string-to-lisp-string (a-java-string)"
-	     +"\n  (let ((a-lisp-string (make-array 0"
-	     +"\n				   :element-type 'character"
-	     +"\n				   :fill-pointer 0"
-	     +"\n				   :adjustable t))"
-	     +"\n	(a-java-string-as-a-char-array (jcall \"toCharArray\" a-java-string)))"
-	     +"\n    (dotimes (i (jarray-length a-java-string-as-a-char-array)"
-	     +"\n	      a-lisp-string)"
-	     +"\n      (vector-push-extend (jarray-ref a-java-string-as-a-char-array i)"
-	     +"\n			  a-lisp-string))))\n";
+		LispGTRec lispGTRec = new LispGTRec(gtname, LispGTActionRecs);
+		LispGTRecs.add(lispGTRec);
+		 
+		// System.err.println("\nGT: "
+		// 		    + gtname
+		// 		    + "\n\tVars: " + LispVars
+		// 		    + "\n\tActions: " + LispGTActions
+		// 		    + "\n\tGTActionGuard: " + LispGTActionGuard
+		// 		    + "\n\tGTActionUpdate: " + LispGTActionUpdate
+		// 		    );
+	    }
+	}
+	String toLisp = LispVars + PrintVars + "))";
+	toLisp += "\n\n(defun java-string-to-lisp-string (a-java-string)"
+	    +"\n  (let ((a-lisp-string (make-array 0"
+	    +"\n				   :element-type 'character"
+	    +"\n				   :fill-pointer 0"
+	    +"\n				   :adjustable t))"
+	    +"\n	(a-java-string-as-a-char-array (jcall \"toCharArray\" a-java-string)))"
+	    +"\n    (dotimes (i (jarray-length a-java-string-as-a-char-array)"
+	    +"\n	      a-lisp-string)"
+	    +"\n      (vector-push-extend (jarray-ref a-java-string-as-a-char-array i)"
+	    +"\n			  a-lisp-string))))\n";
 
-	 String LispMain = "\n\n(defun treat-gt-violation (a-java-string)"
-	     + "\n  (let ((res \"\")"
-	     + "\n        (the-gt-symbol (intern (java-string-to-lisp-string a-java-string) 'common-lisp-user)))"
-	     + "\n    (case the-gt-symbol"
-	     ;
+	String LispMain = "\n\n(defun treat-gt-violation (a-java-string)"
+	    + "\n  (let ((res \"\")"
+	    + "\n        (the-gt-symbol (intern (java-string-to-lisp-string a-java-string) 'common-lisp-user)))"
+	    + "\n    (case the-gt-symbol"
+	    ;
 	 
-	 for (LispGTRec gt : LispGTRecs) {
-	     toLisp += "\n(defconstant *GT-" + gt.name
-		 + "* (intern \"" + gt.name + "\" 'common-lisp-user))";
-	     LispMain += "\n      (|" + gt.name + "|"
-		 + "\n        (progn"
-		 + "\n          (incf *violations-" + gt.name + "*)"
-		 + "\n          (setq res (concatenate 'string res (format nil \"{" + Q + "GT" + U + " : " + Q + "~A" + U + ",  " + Q + "Actions" + U + " : [~%\" \"" + gt.name + "\")))"; 
-;
-	     for (LispActionRec ac : gt.actions) {
-		 LispMain += "\n       (when " + ac.guard
-		     + " " + ac.action + ")";
-	     }
-	     LispMain += "))";
-	 }
-	 LispMain += "\n      (otherwise (setq res (concatenate 'string res (format nil \"{" + Q + "error" + U + " : " + Q + "Unknown GT ~A!" + U + "}~%\" the-gt-symbol)))))"
-+"\n    (setq res (concatenate 'string (substitute #\\SPACE #\\, res :count 1 :from-end t) \"], \" (substitute #\\SPACE #\\, (print-vars) :count 1 :from-end t) \"}\"))"
-+"\n    res #+nil(jnew \"java.lang.String\" res)))\n";
-	 toLisp += LispMain;
+	for (LispGTRec gt : LispGTRecs) {
+	    toLisp += "\n(defconstant *GT-" + gt.name
+		+ "* (intern \"" + gt.name + "\" 'common-lisp-user))";
+	    LispMain += "\n      (|" + gt.name + "|"
+		+ "\n        (progn"
+		+ "\n          (incf *violations-" + gt.name + "*)"
+		+ "\n          (setq res (concatenate 'string res (format nil \"{" + Q + "GT" + U + " : " + Q + "~A" + U + ",  " + Q + "Actions" + U + " : [~%\" \"" + gt.name + "\")))"; 
+	    ;
+	    for (LispActionRec ac : gt.actions) {
+		LispMain += "\n       (when " + ac.guard
+		    + " " + ac.action + ")";
+	    }
+	    LispMain += "))";
+	}
+	LispMain += "\n      (otherwise (setq res (concatenate 'string res (format nil \"{" + Q + "error" + U + " : " + Q + "Unknown GT ~A!" + U + "}~%\" the-gt-symbol)))))"
+	    +"\n    (setq res (concatenate 'string (substitute #\\SPACE #\\, res :count 1 :from-end t) \"], \" (substitute #\\SPACE #\\, (print-vars) :count 1 :from-end t) \"}\"))"
+	    +"\n    res #+nil(jnew \"java.lang.String\" res)))\n";
+	toLisp += LispMain;
  
-         return new EvalNode(wsresult + Translate.prologue 
-			     + "\n//Environment - Monitoring module auto-derived\n"
-			     + wsresult2 
-			     + "\n//SLA Manager module\n\n"
-			     + "// guard_ActionGT renames violations_GT to INCviolations_GT (all other variables are kept the same)" 
-			     + wsresult3
-			     + wsresult4
-			     + "\nmodule SLA_Manager\nSLAactive : bool init true;\n"
-			     + wsresult5
-			     + wsresult6
-			     + "endmodule\n" + "\nrewards \"time\" \n   true : 1;\nendrewards\n"
-			     + wsresult8
-			     , toLisp // XXXX
-			     , ExpressionType.TERMS);
+	return new EvalNode(wsresult + Translate.prologue 
+			    + "\n//Environment - Monitoring module auto-derived\n"
+			    + PrismGTViolationModules 
+			    + "\n//SLA Manager module\n\n"
+			    + "// guard_ActionGT renames violations_GT to INCviolations_GT (all other variables are kept the same)" 
+			    + PrismGuardFormulas
+			    + PrismVariableINCFormulas
+			    + "\nmodule SLA_Manager\nSLAactive : bool init true;\n"
+			    + PrismVariableDeclarations
+			    + PrismTransitionBodies
+			    + "endmodule\n" + "\nrewards \"time\" \n   true : 1;\nendrewards\n"
+			    + PrismRewardsDefinitions
+			    , toLisp // XXXX
+			    , ExpressionType.TERMS);
     }
     
     public EvalNode visitObjectTStateTransitionModel(org.cumulus.certificate.model.TStateTransitionModel type) {
@@ -1839,7 +1900,7 @@ class Evaluator implements ReflectiveVisitor {
                             : nm
                             , typeInfo
                             , (typeInfo == ExpressionType.CLOCK)
-                              ? Translate.timeUnit.type
+			    ? Translate.timeUnit.type
 			    : ( (isDurationType(typeInfo))
 				? ExpressionType.INT
 				: typeInfo )
@@ -1966,8 +2027,8 @@ class Evaluator implements ReflectiveVisitor {
                                                 , type2
                                                 , ExpressionType.INT
                                                 , swappedMajor
-						  ? type1Minor
-						  : type2Minor);
+						? type1Minor
+						: type2Minor);
                 return new Converted(// swappedMajor ? type2 : type1
                                      /* Clocks taint all duration types */
                                      ExpressionType.CLOCK
@@ -2137,10 +2198,10 @@ class Evaluator implements ReflectiveVisitor {
         return new Converted(ExpressionType.NONE);
     }
     private Converted combineTypesMult(String inFunction,
-                                      ExpressionType typeA,
-                                      ExpressionType typeB,
-                                      ExpressionType typeAMinor,
-                                      ExpressionType typeBMinor) {
+				       ExpressionType typeA,
+				       ExpressionType typeB,
+				       ExpressionType typeAMinor,
+				       ExpressionType typeBMinor) {
         Boolean swappedMajor = false;
         ExpressionType type1 = typeA
             , type2 = typeB
@@ -2554,37 +2615,51 @@ class Evaluator implements ReflectiveVisitor {
     public EvalNode visitTExprNumericalAbsViolations(org.cumulus.certificate.model.Violations type) {
         String fname = getClassName(type);
         ExpressionType typeInfo = ((IDInfo) Translate.idTypeMap.get(fname)).type;
+	String gtName = type.getId().getName();
+	// Note the name of the GT, to check afterwards that it has
+	// been declared.
+	Translate.usedGT(gtName);
         return new EvalNode(// fname,
-			    (((Evaluator.GLOB_Current_GTName != null) && Evaluator.GLOB_Current_GTName.equals(type.getId().getName()))
+			    (((Evaluator.GLOB_Current_GTName != null) && Evaluator.GLOB_Current_GTName.equals(gtName))
 			     ? "INC" : "")
-			    + "violations_" + type.getId().getName()	    
+			    + "violations_" + gtName
 			    , "*violations-"
-			    + type.getId().getName() + "*"
+			    + gtName + "*"
 			    , typeInfo);
     }
 
     public EvalNode visitTExprNumericalAbsPenaltyAmount(org.cumulus.certificate.model.PenaltyAmount type) {
         String fname = getClassName(type);
         ExpressionType typeInfo = ExpressionType.INT; //((IDInfo) Translate.idTypeMap.get(fname)).type;
+	String gtName = type.getId().getName();
+	// Note the name of the GT, to check afterwards that it has
+	// been declared.
+	Translate.usedGT(gtName);
         return new EvalNode(// fname,
-			    "penalty_amount_" + type.getId().getName()	    
+			    "penalty_amount_" + gtName	    
 			    , "(***PenaltyAmount*** "
-			    + type.getId().getName() + ")"
+			    + gtName + ")"
 			    , typeInfo);
     }
 
     public EvalNode visitTExprNumericalAbsCounter(org.cumulus.certificate.model.Counter type) {
         String fname = getClassName(type);
         ExpressionType typeInfo = ExpressionType.INT; //((IDInfo) Translate.idTypeMap.get(fname)).type;
+	String actionName = type.getIds().get(0).getName();
+	String gtName = type.getIds().get(1).getName();
+	// Note the names of the GT & the (action,GT) pair, to check
+	// afterwards that they have been declared.
+	Translate.usedGT(gtName);
+	Translate.usedActionGT(actionName, gtName);
         return new EvalNode(// fname,
 			    "counter_"
-			    + type.getIds().get(0).getName()	    
+			    + actionName
 			    + "_"
-			    + type.getIds().get(1).getName()	    
+			    + gtName
 			    , "(***Counter*** "
-			    + type.getIds().get(0).getName()	    
+			    + actionName
 			    + " "
-			    + type.getIds().get(1).getName()	    
+			    + gtName
 			    + ")"
 			    , typeInfo);
     }
@@ -2611,25 +2686,25 @@ class Evaluator implements ReflectiveVisitor {
         return new EvalNode(fname, "(***SeenEvents***)", typeInfo);
     }
     
-   public EvalNode visitTermTypeGuaranteeTermType(org.ggf.schemas.graap._2007._03.ws_agreement.GuaranteeTermType type){
-    	 String fname = getClassName(type);
-    	 IDInfo info = Translate.idTypeMap.get(fname); // no GuaranteeTermType in idTypeMap ---- NULL!!!!!!!
-         ExpressionType typeInfo = info.type;
-         return new EvalNode(fname, "", typeInfo);
+    public EvalNode visitTermTypeGuaranteeTermType(org.ggf.schemas.graap._2007._03.ws_agreement.GuaranteeTermType type){
+	String fname = getClassName(type);
+	IDInfo info = Translate.idTypeMap.get(fname); // no GuaranteeTermType in idTypeMap ---- NULL!!!!!!!
+	ExpressionType typeInfo = info.type;
+	return new EvalNode(fname, "", typeInfo);
     }
    
-   public EvalNode visitGuardedActionType(org.ggf.schemas.graap._2007._03.ws_agreement.GuardedActionType type){
-  	 String fname = getClassName(type);
-  	 IDInfo info = Translate.idTypeMap.get(fname); // no GuaranteeTermType in idTypeMap ---- NULL!!!!!!!
-       ExpressionType typeInfo = info.type;
-       return new EvalNode(fname, "", typeInfo);
-  }
+    public EvalNode visitGuardedActionType(org.ggf.schemas.graap._2007._03.ws_agreement.GuardedActionType type){
+	String fname = getClassName(type);
+	IDInfo info = Translate.idTypeMap.get(fname); // no GuaranteeTermType in idTypeMap ---- NULL!!!!!!!
+	ExpressionType typeInfo = info.type;
+	return new EvalNode(fname, "", typeInfo);
+    }
 
-   public EvalNode visitCustomBusinessValueType(org.ggf.schemas.graap._2007._03.ws_agreement.CustomBusinessValueType type){
-	  	 String fname = getClassName(type);
-	  	 IDInfo info = Translate.idTypeMap.get(fname); // no GuaranteeTermType in idTypeMap ---- NULL!!!!!!!
-	       ExpressionType typeInfo = info.type;
-	       return new EvalNode(fname, "", typeInfo);
+    public EvalNode visitCustomBusinessValueType(org.ggf.schemas.graap._2007._03.ws_agreement.CustomBusinessValueType type){
+	String fname = getClassName(type);
+	IDInfo info = Translate.idTypeMap.get(fname); // no GuaranteeTermType in idTypeMap ---- NULL!!!!!!!
+	ExpressionType typeInfo = info.type;
+	return new EvalNode(fname, "", typeInfo);
     }
 
     //
