@@ -1,38 +1,26 @@
 ![TOREADOR logo](http://www.toreador-project.eu/wp-content/themes/acqualiofilizzata/images/logo-header.png)
-
-The __TOREADOR REST API__ is a collection of REST services that allows the execution of operations against the TOREADOR database. It enables the generation and coordinated execution of prism commands on prism models and prism properties.
+The __TOREADOR REST API__ is a collection of REST services that allows the execution of operations against the TOREADOR database. The database is used to store all the metadata about monitoring and validation projects.
+## Project Requirements
+1. [Apache Maven](https://maven.apache.org/) v3.5.0 to build and run the project
+2. [GIT](https://git-scm.com/) to clone the project for github
+3. [MySQL 5.5+](https://www.mysql.com/) database server
 ## Installation
-The TOREADOR REST API requires [Apache Maven](https://maven.apache.org/) v4+ to run.
-Ideally, you will also need to install [Git](https://git-scm.com/) to clone and build the project from the source.
-
-Clone the TOREADOR repository locally. To do so use the following command:
+#### Set up the MySQL database
+1. Install the MySQL server
+2. Create a user with __{userame}__ and __{password}__
+3. Create an empty schema with name __toreador__. Make sure you use this very name for the schema. Make sure that the user can connect remotely to the MySQL server. It might be necessary to grant the user the appropriate right to allow remote connections
+#### Set up the project
+4. clone the project locally
 ```sh
- git clone https://github.com/kmantzoukas/TOREADOR.git
+$ git clone https://github.com/kmantzoukas/TOREADOR.git
 ```
-
-# REST API documentation
-A detailed view of the API can be found [here](http://10.207.1.102:8080/toreador/swagger-ui.html).
-The resources manipulated by the API are the following:
-
-  - __User__ - A list with all the users of the system
-  - __PrismRequest__ - A list with all the prism requests
-  - __EverestRequest__ - A list with all the EVEREST requests
-
-# Build the project from source
-In order to build the project navigate to the project's directory and use Maven to build it.
-```sh
-$ cd TOREADOR/ToreadorRESTAPI
-$ mvn install:install-file -Dfile=./lib/saxon9he.jar -DgroupId=com.saxonhe -DartifactId=saxonhe -Dversion=9.0 -Dpackaging=jar
-$ mvn install:install-file -Dfile=./lib/saxon9-xqj.jar -DgroupId=com.saxonica.xqj -DartifactId=saxonica -Dversion=1.0 -Dpackaging=jar
-$ mvn clean package
-```
-
-# Deploy the project at an embedded [Apache Tomcat 7](http://tomcat.apache.org/maven-plugin-2.0/tomcat7-maven-plugin/)
-In order to deploy the project navigate to the project's directory and use Maven to deploy it.
+5. Open file __TOREADOR/ToreadorRESTAPI/src/main/resources/db.properties__ and edit the properties according to the MySQL installation performed in the previous step
+6. Execute the following commands:
 ```sh
 $ cd TOREADOR/ToreadorRESTAPI
 $ mvn clean install tomcat7:run
 ```
+The commands above will instruct maven to clean any previous builds, populate the empty schema created at step 3 with the necessary tables and fire up an instance of [Tomcat 7](tomcat.apache.org/) to deploy and run the project on.
 
 # Profiles
 For conveniency and ease of deployment, during development two separate Maven profiles under the names **soi-vm-test01@city** and **localhost** have been created.
