@@ -1,10 +1,13 @@
 package uk.ac.city.toreador.rest.api.controllers;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.sql.Timestamp;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.namespace.QName;
@@ -37,109 +40,87 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import uk.ac.city.toreador.rest.api.entities.AssetType;
+import uk.ac.city.toreador.rest.api.entities.Asset;
+import uk.ac.city.toreador.rest.api.entities.AssetSecurityPropertyPair;
 import uk.ac.city.toreador.rest.api.entities.AtomicService;
 import uk.ac.city.toreador.rest.api.entities.CompositeService;
 import uk.ac.city.toreador.rest.api.entities.GuardedAction;
 import uk.ac.city.toreador.rest.api.entities.Input;
 import uk.ac.city.toreador.rest.api.entities.Operation;
 import uk.ac.city.toreador.rest.api.entities.Output;
+import uk.ac.city.toreador.rest.api.entities.Project;
 import uk.ac.city.toreador.rest.api.entities.User;
-import uk.ac.city.toreador.rest.api.entities.ValidationAsset;
-import uk.ac.city.toreador.rest.api.entities.ValidationProject;
-import uk.ac.city.toreador.rest.api.entities.ValidationProjectStatus;
+import uk.ac.city.toreador.rest.api.jpa.repositories.AssetSecurityPropertyPairsRepository;
+import uk.ac.city.toreador.rest.api.jpa.repositories.AssetsRepository;
 import uk.ac.city.toreador.rest.api.jpa.repositories.AtomicServicesRepository;
 import uk.ac.city.toreador.rest.api.jpa.repositories.CompositeServicesRepository;
 import uk.ac.city.toreador.rest.api.jpa.repositories.GuardedActionsRepository;
 import uk.ac.city.toreador.rest.api.jpa.repositories.InputsRepository;
 import uk.ac.city.toreador.rest.api.jpa.repositories.OperationsRepository;
 import uk.ac.city.toreador.rest.api.jpa.repositories.OutputsRepository;
+import uk.ac.city.toreador.rest.api.jpa.repositories.ProjectsRepository;
 import uk.ac.city.toreador.rest.api.jpa.repositories.UsersRepository;
-import uk.ac.city.toreador.rest.api.jpa.repositories.ValidationAssetsRepository;
-import uk.ac.city.toreador.rest.api.jpa.repositories.ValidationProjectsRepository;
 import uk.ac.city.toreador.validation.Translate;
 
 @Api(tags = "Validation project resource")
 @RestController
-public class ValidationProjectRESTController {
+public class ProjectRESTController {
 
-	final static Logger log = Logger.getLogger(ValidationProjectRESTController.class);
-
-	@Autowired
-	ValidationProjectsRepository validationProjectRepository;
+	final static Logger log = Logger.getLogger(ProjectRESTController.class);
 
 	@Autowired
-	UsersRepository userRepository;
-	
+	ProjectsRepository projectsRepository;
+
 	@Autowired
-	CompositeServicesRepository compositeServiceRepository;
-	
+	UsersRepository usersRepository;
+
+	@Autowired
+	CompositeServicesRepository compositeServicesRepository;
+
 	@Autowired
 	AtomicServicesRepository atomicServicesRepository;
-	
+
 	@Autowired
-	ValidationAssetsRepository validationAssetsRepository;
-	
+	AssetsRepository assetsRepository;
+
 	@Autowired
 	OperationsRepository operationsRepository;
 
 	@Autowired
 	OutputsRepository outputsRepository;
-	
+
 	@Autowired
 	InputsRepository inputsRepository;
-	
+
 	@Autowired
 	GuardedActionsRepository guardedActionsRepository;
-	
 
-	/*
-	 * This method returns a list of all the validation projects stored in the
-	 * database
-	 */
-	@ApiOperation(value = "Return a list of all the validation projects in the database", nickname = "getAllValidationProjects")
-	@ApiResponses({ @ApiResponse(code = 404, message = "Not found"),
-			@ApiResponse(code = 400, message = "Invalid input") })
-	@RequestMapping(value = "/rest/api/projects/validation", method = RequestMethod.GET, produces = "application/json")
-	public ResponseEntity<Set<ValidationProject>> getAllValidationProjects() {
-
-		Set<ValidationProject> requests = null;
-
-		try {
-			requests = (Set<ValidationProject>) validationProjectRepository.findAll();
-			log.info("Fetching the list of all validation projects. Total number of validation projects fetched is "
-					+ requests.size());
-			return new ResponseEntity<Set<ValidationProject>>(requests, HttpStatus.OK);
-
-		} catch (Exception e) {
-			log.error(e.getMessage());
-			return new ResponseEntity<Set<ValidationProject>>(HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
+	@Autowired
+	AssetSecurityPropertyPairsRepository assetSecurityPropertyPairsRepository;
 
 	/*
 	 * This method returns the validation project with the specified id that is
 	 * stored in the database
 	 */
-	@ApiOperation(value = "Get the validation project with the specified id from the database", nickname = "getValidationProjectById", response = ValidationProject.class)
+	@ApiOperation(value = "Get the validation project with the specified id from the database", nickname = "getProjectsByUser", response = Project.class)
 	@ApiResponses({ @ApiResponse(code = 404, message = "The user with the specified id was not found in the databse"),
 			@ApiResponse(code = 400, message = "The user with the id provided is not in a valid format") })
-	@RequestMapping(value = "/rest/api/users/{uid}/projects/validation", method = RequestMethod.GET, produces = "application/json")
-	public ResponseEntity<Set<ValidationProject>> getValidationProjectsByUser(@PathVariable Long uid) {
+	@RequestMapping(value = "/rest/api/users/{uid}/projects", method = RequestMethod.GET, produces = "application/json")
+	public ResponseEntity<List<Project>> getProjectsByUser(@PathVariable Integer uid) {
 
 		try {
-			User user = userRepository.findById(uid);
+			User user = usersRepository.findById(uid);
 
 			if (user != null) {
-				Set<ValidationProject> projects = validationProjectRepository.findByUser(user);
+				List<Project> projects = projectsRepository.findByUserOrderByCreatedDesc(user);
 				log.info("Fetching list of validation projects for user " + user.toString());
-				return new ResponseEntity<Set<ValidationProject>>(projects, HttpStatus.OK);
+				return new ResponseEntity<List<Project>>(projects, HttpStatus.OK);
 			} else {
-				return new ResponseEntity<Set<ValidationProject>>(HttpStatus.NOT_FOUND);
+				return new ResponseEntity<List<Project>>(HttpStatus.NOT_FOUND);
 			}
 		} catch (Exception e) {
 			log.error(e.getMessage());
-			return new ResponseEntity<Set<ValidationProject>>(HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<List<Project>>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -147,292 +128,51 @@ public class ValidationProjectRESTController {
 	 * This method returns the validation project with the specified id that is
 	 * stored in the database
 	 */
-	@ApiOperation(value = "Get the validation project with the specified id from the database", nickname = "getValidationProjectById", response = ValidationProject.class)
+	@ApiOperation(value = "Get the validation project with the specified id from the database", nickname = "getProjectById", response = Project.class)
 	@ApiResponses({
 			@ApiResponse(code = 404, message = "The validation project with the specified id was not found in the databse"),
 			@ApiResponse(code = 400, message = "The validation project with the id provided is not in a valid format") })
-	@RequestMapping(value = "/rest/api/projects/validation/{pid}", method = RequestMethod.GET, produces = "application/json")
-	public ResponseEntity<ValidationProject> getValidationProjectById(@PathVariable Long pid) {
+	@RequestMapping(value = "/rest/api/users/{uid}/projects/{pid}", method = RequestMethod.GET, produces = "application/json")
+	public ResponseEntity<Project> getProjectById(@PathVariable Integer uid, @PathVariable Integer pid) {
 
-		ValidationProject validationProject = null;
+		Project project = null;
 
 		try {
-			validationProject = validationProjectRepository.findById(pid);
+			project = projectsRepository.findById(pid);
 
-			if (validationProject != null) {
-				log.info("Fetching validation project " + validationProject.toString());
-				return new ResponseEntity<ValidationProject>(validationProject, HttpStatus.OK);
+			if (project != null) {
+				log.info("Fetching validation project " + project.toString());
+				return new ResponseEntity<Project>(project, HttpStatus.OK);
 			} else {
 				log.info("Validation project with id:" + pid + " was not found");
-				return new ResponseEntity<ValidationProject>(validationProject, HttpStatus.NOT_FOUND);
+				return new ResponseEntity<Project>(project, HttpStatus.NOT_FOUND);
 			}
 		} catch (Exception e) {
 			log.error(e.getMessage());
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-	
+
 	/*
-	 * This method returns the validation project with the specified id that is
-	 * stored in the database
+	 * This method creates a new validation project and stores it in the database
 	 */
-	@ApiOperation(value = "Get a list of all assets for the validation project with the specified id from the database", nickname = "getAssetsByValidationProjectId")
+	@ApiOperation(value = "Create a new validation project and store it in the database", nickname = "createNewProject", response = Project.class)
 	@ApiResponses({
 			@ApiResponse(code = 404, message = "The validation project with the specified id was not found in the databse"),
 			@ApiResponse(code = 400, message = "The validation project with the id provided is not in a valid format") })
-	@RequestMapping(value = "/rest/api/projects/validation/{pid}/assets", method = RequestMethod.GET, produces = "application/json")
-	public ResponseEntity<Set<ValidationAsset>> getAssetsByValidationProjectId(@PathVariable Long pid) {
-
-		ValidationProject validationProject = null;
-
-		try {
-			validationProject = validationProjectRepository.findById(pid);
-
-			if (validationProject != null) {
-				Set<ValidationAsset> assets = validationProject.getAssets();
-				return new ResponseEntity<Set<ValidationAsset>>(assets, HttpStatus.OK);
-			} else {
-				return new ResponseEntity<Set<ValidationAsset>>(HttpStatus.NOT_FOUND);
-			}
-		} catch (Exception e) {
-			log.error(e.getMessage());
-			return new ResponseEntity<Set<ValidationAsset>>(HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
-
-	/*
-	 * This method creates a new validation project and stores it in the
-	 * database
-	 */
-	@ApiOperation(value = "Create a new validation project and store it in the database", nickname = "createValidationProject", response = ValidationProject.class)
-	@ApiResponses({
-			@ApiResponse(code = 404, message = "The validation project with the specified id was not found in the databse"),
-			@ApiResponse(code = 400, message = "The validation project with the id provided is not in a valid format") })
-	@RequestMapping(value = "/rest/api/projects/validation/{pid}/start", method = RequestMethod.POST)
-	public ResponseEntity<ValidationProject> startValidationProject(@PathVariable Long pid) {
+	@Transactional
+	@RequestMapping(value = "/rest/api/users/{uid}/projects", method = RequestMethod.POST, consumes = "application/json")
+	public ResponseEntity<Project> createNewProject(@PathVariable Integer uid, @RequestBody Project project) {
 
 		try {
-			ValidationProject project = validationProjectRepository.findOne(pid);
-			
-			ClassPathResource resource = new ClassPathResource("test-inputs/AgreementOffer_Demo-christos.xml");
-			InputStream file = resource.getInputStream();
-			
-			Translate tr = new Translate();
-
-			String[] results = tr.translateSLAtoPrismAndLisp(file);
-			//log.info(results[0]); // The Prism model
-			//log.info(results[1]); // The Lisp code
-			
-			byte[] model = results[0].getBytes();
-			
-			project.setModel(model);
-			validationProjectRepository.save(project);
-			
-			return new ResponseEntity<ValidationProject>(HttpStatus.OK);
+			User user = usersRepository.findOne(uid);
+			project.setCreated(new Timestamp(System.currentTimeMillis()));
+			project.setStatus("CREATING");
+			project.setUser(user);
+			projectsRepository.save(project);
+			return new ResponseEntity<Project>(project, HttpStatus.CREATED);
 
 		} catch (Exception e) {
-			log.error(e.getMessage());
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
-
-	/*
-	 * This method creates a new validation project and stores it in the
-	 * database
-	 */
-	@ApiOperation(value = "Create a new validation project and store it in the database", nickname = "uploadServiceModel", response = ValidationProject.class)
-	@ApiResponses({
-			@ApiResponse(code = 404, message = "The validation project with the specified id was not found in the databse"),
-			@ApiResponse(code = 400, message = "The validation project with the id provided is not in a valid format") })
-	@Transactional
-	@RequestMapping(value = "/rest/api/projects/validation/{pid}/servicemodel", method = RequestMethod.POST, headers = "content-type=multipart/*")
-	public ResponseEntity<ValidationProject> uploadServiceModel(@PathVariable Long pid,
-			@RequestParam("files") MultipartFile[] files) {
-
-		try {
-			
-			XQDataSource ds = new com.saxonica.xqj.SaxonXQDataSource();
-			XQConnection con = ds.getConnection();
-			
-			ClassPathResource resource = new ClassPathResource("Assets.xq");
-			InputStream query = resource.getInputStream();
-			
-			XQStaticContext ctx = con.getStaticContext();
-			ctx.setBaseURI(query.toString());
-			XQPreparedExpression expr = con.prepareExpression(query, ctx);
-			
-			File tempdir = Files.createTempDir();
-			
-			ValidationProject project = validationProjectRepository.findOne(pid);
-			
-			for(MultipartFile file : files){
-				InputStream input = file.getInputStream();
-				File owls = new File(tempdir.getAbsolutePath() + "/" + file.getOriginalFilename());
-			    OutputStream out = new FileOutputStream(owls);
-				IOUtils.copy(input,out);
-				input.close();
-				out.close();
-			}
-			
-			expr.bindObject(new QName("theinput"), new String(files[0].getOriginalFilename()), null);
-			expr.bindObject(new QName("thedirectory"), tempdir.getAbsolutePath(), null);
-			query.close();
-
-			String json = expr.executeQuery().getSequenceAsString(null).replace("\" ", "\"").replace(" \"", "\"").replace(", ]", " ]");
-			
-			JSONParser parser = new JSONParser();
-			Object obj = parser.parse(json);
-			
-			JSONObject jsonObject = (JSONObject) obj;
-            JSONObject compositeServiceObj = (JSONObject) jsonObject.get("compositeService");
-            
-            CompositeService compositeService = new CompositeService();
-            compositeService.setName((String)compositeServiceObj.get("name"));
-            compositeService.setProject(project);
-            /*
-            compositeService.setOwls(
-            	IOUtils.toByteArray(
-            		new FileInputStream(
-            			new File(tempdir.getAbsolutePath() + "/" + (String)compositeServiceObj.get("name") + ".owls"))));
-            */
-            compositeServiceRepository.save(compositeService);
-			
-            JSONArray atomicServices = (JSONArray) compositeServiceObj.get("atomicServices");
-            Iterator<JSONObject> atomicServicesiterator = atomicServices.iterator();
-            
-            while (atomicServicesiterator.hasNext()) {
-            	
-            	JSONObject atomicServiceObj = atomicServicesiterator.next();
-            	
-            	AtomicService atomicService = new AtomicService();
-            	atomicService.setName((String)atomicServiceObj.get("serviceName"));
-            	atomicService.setCompositeService(compositeService);
-            	/*
-            	 * Store the newly created atomic service in the atomicService variable to use it later on
-            	 */
-            	AtomicService tempAtomicservice = atomicServicesRepository.save(atomicService); 
-            	
-            	JSONArray operations = (JSONArray) atomicServiceObj.get("operations");
-            	Iterator<JSONObject> operationsIterator = operations.iterator();
-            	
-            	 while (operationsIterator.hasNext()) {
-                 	JSONObject operationObj = operationsIterator.next();
-                 	
-                 	/*
-                 	 * Create and store the newly created operation @ table operations
-                 	 */
-                 	Operation operation = new Operation();
-                 	operation.setName((String)operationObj.get("operationName"));
-                 	operation.setInputMessageName((String)operationObj.get("inputMessageName"));
-                 	operation.setOutputMessageName((String)operationObj.get("outputMessageName"));
-                 	operation.setAtomicService(tempAtomicservice);
-                 	Operation tempOperation = operationsRepository.save(operation);
-                 	
-                 	/*
-                	 * Store the operation as an asset of type operation
-                	 */
-                	ValidationAsset operationAsset = new ValidationAsset();
-                	operationAsset.setProject(project);
-                	operationAsset.setName("service." + compositeService.getName() + ".operation." + operation.getName());
-                	operationAsset.setType(AssetType.OPERATION);
-                	validationAssetsRepository.save(operationAsset);
-                 	
-                 	/*
-                 	 * Create and store the output of the operation @ table outputs
-                 	 */
-                 	
-                 	Output output = new Output();
-                 	output.setOperation(tempOperation);
-                 	output.setName((String)operationObj.get("outputName"));
-                 	output.setType((String)operationObj.get("outputType"));
-                 	outputsRepository.save(output);
-                 	
-                 	/*
-                	 * Store the operation as an asset of type output
-                	 */
-                	ValidationAsset outputAsset = new ValidationAsset();
-                	outputAsset.setProject(project);
-                	outputAsset.setName("service." + compositeService.getName() + ".operation." + operation.getName() + ".output." + output.getName());
-                	outputAsset.setType(AssetType.OUTPUT);
-                	validationAssetsRepository.save(outputAsset);
-                 	
-                 	JSONArray inputsObj = (JSONArray) operationObj.get("inputParameters");
-                	Iterator<JSONObject> inputsIterator = inputsObj.iterator();
-                	
-                	while(inputsIterator.hasNext()){
-                		JSONObject input = inputsIterator.next();
-                		
-                		Input in = new Input();
-                		in.setName((String)input.get("inputName"));
-                		in.setOperation(tempOperation);
-                		in.setType((String)input.get("inputType"));
-                		inputsRepository.save(in);
-                		
-                		/*
-                    	 * Store the operation as an asset of type input
-                    	 */
-                    	ValidationAsset inputAsset = new ValidationAsset();
-                    	inputAsset.setProject(project);
-                    	inputAsset.setName("service." + compositeService.getName() + ".operation." + operation.getName() + ".input." + in.getName());
-                    	inputAsset.setType(AssetType.INPUT);
-                    	validationAssetsRepository.save(inputAsset);
-                		
-                	}
-            	 }
-            }
-            
-			return new ResponseEntity<ValidationProject>(HttpStatus.OK);
-
-		}catch (Exception e) {
-			log.error(e.getMessage());
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
-	
-	/*
-	 * This method creates a new validation project and stores it in the
-	 * database
-	 */
-	@ApiOperation(value = "Create a new validation project and store it in the database", nickname = "uploadServiceModel", response = ValidationProject.class)
-	@ApiResponses({
-			@ApiResponse(code = 404, message = "The validation project with the specified id was not found in the databse"),
-			@ApiResponse(code = 400, message = "The validation project with the id provided is not in a valid format") })
-	@Transactional
-	@RequestMapping(value = "/rest/api/projects/validation", method = RequestMethod.POST, consumes = "application/json")
-	public ResponseEntity<ValidationProject> createValidationProject(@RequestBody ValidationProject project) {
-
-		try {
-			//project.setCreated(new Timestamp(System.currentTimeMillis()));
-			project.setStatus(ValidationProjectStatus.CREATING);
-			validationProjectRepository.save(project);
-			return new ResponseEntity<ValidationProject>(project, HttpStatus.CREATED);
-
-		}
-		catch (Exception e) {
-			log.error(e.getMessage());
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
-	
-	/*
-	 * This method creates a new validation project and stores it in the
-	 * database
-	 */
-	@ApiOperation(value = "Create a new validation project and store it in the database", nickname = "uploadServiceModel", response = ValidationProject.class)
-	@ApiResponses({
-			@ApiResponse(code = 404, message = "The validation project with the specified id was not found in the databse"),
-			@ApiResponse(code = 400, message = "The validation project with the id provided is not in a valid format") })
-	@Transactional
-	@RequestMapping(value = "/rest/api/projects/validation/assets/{aid}/guardedactions", method = RequestMethod.POST, consumes = "application/json")
-	public ResponseEntity<GuardedAction> createGuardedAction(@PathVariable Long aid, @RequestBody GuardedAction action) {
-
-		try {
-			ValidationAsset asset = validationAssetsRepository.findOne(aid);
-			action.setAsset(asset);
-			GuardedAction ac = guardedActionsRepository.save(action);
-			return new ResponseEntity<GuardedAction>(ac, HttpStatus.CREATED);
-		}
-		catch (Exception e) {
 			log.error(e.getMessage());
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -441,21 +181,21 @@ public class ValidationProjectRESTController {
 	/*
 	 * This method updates a validation project and stores it in the database
 	 */
-	@ApiOperation(value = "Update a validation project and store it in the database", nickname = "putValidationProject", response = ValidationProject.class)
+	@ApiOperation(value = "Update a project and store it in the database", nickname = "updateProject", response = Project.class)
 	@ApiResponses({
 			@ApiResponse(code = 404, message = "The validation project with the specified id was not found in the databse"),
 			@ApiResponse(code = 400, message = "The validation project with the id provided is not in a valid format") })
 	@RequestMapping(value = "/rest/api/projects/validation", method = RequestMethod.PUT, produces = "application/json", consumes = "application/json")
-	public ResponseEntity<ValidationProject> putValidationProject(@RequestBody ValidationProject project) {
+	public ResponseEntity<Project> updateProject(@RequestBody Project project) {
 
 		try {
 
-			ValidationProject p = validationProjectRepository.findById(project.getId());
+			Project p = projectsRepository.findOne(project.getId());
 
 			if (p != null) {
-				p = validationProjectRepository.save(project);
+				p = projectsRepository.save(project);
 				log.info("Validation project updated successully " + p);
-				return new ResponseEntity<ValidationProject>(p, HttpStatus.CREATED);
+				return new ResponseEntity<Project>(p, HttpStatus.CREATED);
 			} else {
 				log.info("Validation project with id: " + project.getId()
 						+ " was not found and therefore can not be updated");
@@ -467,36 +207,179 @@ public class ValidationProjectRESTController {
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-	
+
 	/*
-	 * This method updates the asset of a validation project and stores it in the database
+	 * This method creates a new validation project and stores it in the database
 	 */
-	@ApiOperation(value = "Update the asset of validation project and store it in the database", nickname = "putValidationProjectAsset", response = ValidationAsset.class)
+	@ApiOperation(value = "Create a new validation project and store it in the database", nickname = "deleteProjectById", response = Project.class)
 	@ApiResponses({
 			@ApiResponse(code = 404, message = "The validation project with the specified id was not found in the databse"),
 			@ApiResponse(code = 400, message = "The validation project with the id provided is not in a valid format") })
-	@RequestMapping(value = "/rest/api/projects/validation/assets", method = RequestMethod.PUT, consumes = "application/json")
-	public ResponseEntity<?> putValidationProjectAsset(@RequestBody ValidationAsset asset) {
+	@Transactional
+	@RequestMapping(value = "/rest/api/users/{uid}/projects/{pid}", method = RequestMethod.DELETE)
+	public ResponseEntity<?> deleteProjectById(@PathVariable Integer uid, @PathVariable Integer pid) {
 
 		try {
-			
-			ValidationAsset vasset = validationAssetsRepository.findOne(asset.getId());
-			
-			if (vasset != null) {
-				
-				vasset.setRate(asset.getRate());
-				vasset.setTimeunit(asset.getTimeunit());
-				vasset.setSecurityproperty(asset.getSecurityproperty());
-				
-				validationAssetsRepository.save(vasset);
-				log.info("Validation project updated successully " + vasset);
-				
-				return new ResponseEntity<>(HttpStatus.CREATED);
-			} else {
-				log.info("Validation project asset with id: " + asset.getId()
-						+ " was not found and therefore can not be updated");
-				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			projectsRepository.delete(pid);
+			return new ResponseEntity<>(HttpStatus.OK);
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	/*
+	 * This method creates a new validation project and stores it in the database
+	 */
+	@ApiOperation(value = "Create a new validation project and store it in the database", nickname = "uploadServiceModel", response = Project.class)
+	@ApiResponses({
+			@ApiResponse(code = 404, message = "The validation project with the specified id was not found in the databse"),
+			@ApiResponse(code = 400, message = "The validation project with the id provided is not in a valid format") })
+	@Transactional
+	@RequestMapping(value = "/rest/api/users/{uid}/projects/{pid}/servicemodel", method = RequestMethod.POST, headers = "content-type=multipart/*")
+	public ResponseEntity<Project> uploadServiceModel(@PathVariable Integer uid, @PathVariable Integer pid,
+			@RequestParam("files") MultipartFile[] files) {
+
+		try {
+
+			XQDataSource ds = new com.saxonica.xqj.SaxonXQDataSource();
+			XQConnection con = ds.getConnection();
+
+			ClassPathResource resource = new ClassPathResource("Assets.xq");
+			InputStream query = resource.getInputStream();
+
+			XQStaticContext ctx = con.getStaticContext();
+			ctx.setBaseURI(query.toString());
+			XQPreparedExpression expr = con.prepareExpression(query, ctx);
+
+			File tempdir = Files.createTempDir();
+
+			Project project = projectsRepository.findOne(pid);
+
+			for (MultipartFile file : files) {
+				InputStream input = file.getInputStream();
+				File owls = new File(tempdir.getAbsolutePath() + "/" + file.getOriginalFilename());
+				OutputStream out = new FileOutputStream(owls);
+				IOUtils.copy(input, out);
+				input.close();
+				out.close();
 			}
+
+			expr.bindObject(new QName("theinput"), new String(files[0].getOriginalFilename()), null);
+			expr.bindObject(new QName("thedirectory"), tempdir.getAbsolutePath(), null);
+			query.close();
+
+			String json = expr.executeQuery().getSequenceAsString(null).replace("\" ", "\"").replace(" \"", "\"")
+					.replace(", ]", " ]");
+
+			JSONParser parser = new JSONParser();
+			Object obj = parser.parse(json);
+
+			JSONObject jsonObject = (JSONObject) obj;
+			JSONObject compositeServiceObj = (JSONObject) jsonObject.get("compositeService");
+
+			CompositeService compositeService = new CompositeService();
+			compositeService.setName((String) compositeServiceObj.get("name"));
+			compositeService.setProject(project);
+
+			compositeService.setOwls(IOUtils.toByteArray(
+					new FileInputStream(new File(tempdir.getAbsolutePath() + "/" + files[0].getOriginalFilename()))));
+
+			compositeServicesRepository.save(compositeService);
+
+			JSONArray atomicServices = (JSONArray) compositeServiceObj.get("atomicServices");
+			Iterator<?> atomicServicesiterator = atomicServices.iterator();
+
+			while (atomicServicesiterator.hasNext()) {
+
+				JSONObject atomicServiceObj = (JSONObject) atomicServicesiterator.next();
+
+				AtomicService atomicService = new AtomicService();
+				atomicService.setName((String) atomicServiceObj.get("serviceName"));
+				atomicService.setCompositeService(compositeService);
+				atomicService.setOwl(IOUtils.toByteArray(new FileInputStream(new File(tempdir.getAbsolutePath() + "/"
+						+ ((String) atomicServiceObj.get("serviceName")).replace("Service", "") + ".owl"))));
+				/*
+				 * Store the newly created atomic service in the atomicService variable to use
+				 * it later on
+				 */
+				AtomicService tempAtomicservice = atomicServicesRepository.save(atomicService);
+
+				JSONArray operations = (JSONArray) atomicServiceObj.get("operations");
+				Iterator<?> operationsIterator = operations.iterator();
+
+				while (operationsIterator.hasNext()) {
+					JSONObject operationObj = (JSONObject) operationsIterator.next();
+
+					/*
+					 * Store the operation as an asset of type operation
+					 */
+					Asset operationAsset = new Asset();
+					operationAsset.setProject(project);
+					operationAsset.setName("service_" + compositeService.getName() + "_operation_"
+							+ operationObj.get("operationName"));
+					operationAsset.setType("OPERATION");
+					Asset tempOperationAsset = assetsRepository.save(operationAsset);
+
+					/*
+					 * Create and store the newly created operation @ table operations
+					 */
+					Operation operation = new Operation();
+					operation.setName((String) operationObj.get("operationName"));
+					operation.setInputmessage((String) operationObj.get("inputMessageName"));
+					operation.setOutputmessage((String) operationObj.get("outputMessageName"));
+					operation.setAtomicService(tempAtomicservice);
+					operation.setAsset(tempOperationAsset);
+					Operation tempOperation = operationsRepository.save(operation);
+
+					/*
+					 * Store an asset of type output
+					 */
+					Asset outputAsset = new Asset();
+					outputAsset.setProject(project);
+					outputAsset.setName("service_" + compositeService.getName() + "_operation_" + operation.getName()
+							+ "_output_" + (String) operationObj.get("outputName"));
+					outputAsset.setType("OUTPUT");
+					Asset tempOutputAsset = assetsRepository.save(outputAsset);
+
+					/*
+					 * Create and store the output of the operation @ table outputs
+					 */
+
+					Output output = new Output();
+					output.setOperation(tempOperation);
+					output.setName((String) operationObj.get("outputName"));
+					output.setType((String) operationObj.get("outputType"));
+					output.setAsset(tempOutputAsset);
+					outputsRepository.save(output);
+
+					JSONArray inputsObj = (JSONArray) operationObj.get("inputParameters");
+					Iterator<?> inputsIterator = inputsObj.iterator();
+
+					while (inputsIterator.hasNext()) {
+						JSONObject inputObj = (JSONObject) inputsIterator.next();
+
+						/*
+						 * Store the operation as an asset of type input
+						 */
+						Asset inputAsset = new Asset();
+						inputAsset.setProject(project);
+						inputAsset.setName("service_" + compositeService.getName() + "_operation_" + operation.getName()
+								+ "_input_" + (String) inputObj.get("inputName"));
+						inputAsset.setType("INPUT");
+						Asset tempInputAsset = assetsRepository.save(inputAsset);
+
+						Input input = new Input();
+						input.setName((String) inputObj.get("inputName"));
+						input.setOperation(tempOperation);
+						input.setType((String) inputObj.get("inputType"));
+						input.setAsset(tempInputAsset);
+						inputsRepository.save(input);
+					}
+				}
+			}
+
+			return new ResponseEntity<Project>(HttpStatus.OK);
 
 		} catch (Exception e) {
 			log.error(e.getMessage());
@@ -505,59 +388,401 @@ public class ValidationProjectRESTController {
 	}
 
 	/*
-	 * This method creates a new validation project and stores it in the
+	 * This method creates a new validation project and stores it in the database
+	 */
+	@ApiOperation(value = "Create the WS-Agreement and store it in the database and create the prism model and store in the database", nickname ="translateProject",response=Project.class)
+	@ApiResponses
+	({@ApiResponse(code=404,message="The validation project with the specifiedid was not found in the databse"),
+	@ApiResponse(code = 400,message="The validation project with the idprovided is not in a valid format") })
+	@RequestMapping(value = "/rest/api/users/{uid}/projects/{pid}/translate", method = RequestMethod.POST)
+	@Transactional
+	public ResponseEntity<Project> translateProject(@PathVariable Integer uid, @PathVariable Integer pid) {
+		try {
+			Project project = projectsRepository.findOne(pid);
+	
+			 /*
+			 * Create the WS Agreement from the assets and guarded actions
+			 */
+			 String xml = "";
+			 
+			    Set<Asset> assets = project.getAssets();
+			 
+			    // TODO Maria you should the code below this section
+			    Integer i = 1;
+			 
+			    xml += ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
+			        + "<wsag:AgreementOffer xmlns:wsa=\"http://www.w3.org/2005/08/addressing\" "
+			        + "xmlns:asrt=\"http://www.cumulus.org/certificate/model\" "
+			        + "xmlns:wsdl=\"http://schemas.xmlsoap.org/wsdl/\" "
+			        + "xmlns:wsag=\"http://schemas.ggf.org/graap/2007/03/ws-agreement\" "
+			        + "xmlns:wsrf-bf=\"http://docs.oasis-open.org/wsrf/bf-2\" "
+			        + "xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" "
+			        + "xmlns:hfp=\"http://www.w3.org/2001/XMLSchema-hasFacetAndProperty\" "
+			        + "xsi:schemaLocation=\"http://schemas.ggf.org/graap/2007/03/ws-agreement file:ws-agreement-demo.xsd\"> "
+			        + "<wsag:Context> "
+			        + "        <wsag:ServiceProvider>AgreementInitiator</wsag:ServiceProvider> "
+			        +
+			        /*
+			         * "        <wsag:SLA_LC_Parameters> " +
+			         * "            <asrt:IntParam> " +
+			         * "                <VariableName>TooManyVio</VariableName> "
+			         * + "                <InitialValue> " +
+			         * "                    <asrt:Int value=\"1\"/> " +
+			         * "                </InitialValue> " +
+			         * "            </asrt:IntParam> " +
+			         * "            <asrt:DurationParam> " +
+			         * "                <VariableName>expiryTime</VariableName> "
+			         * + "                <InitialValue> " +
+			         * "                    <asrt:Days> " +
+			         * "                        <asrt:Int value=\"10\"/> " +
+			         * "                    </asrt:Days> " +
+			         * "                </InitialValue> " +
+			         * "            </asrt:DurationParam> " +
+			         * "        </wsag:SLA_LC_Parameters> " +
+			         */
+			        "    </wsag:Context> " + "    <wsag:Terms> "
+			        + "        <wsag:All>");
+			 
+			    for (Asset asset : assets) {
+			        for (AssetSecurityPropertyPair p : asset.getAssetSecuritypropertyPairs()) {
+			        if (p != null) {
+			            String SDTID = "SDT" + (i++); // <-- fixed values
+			            String assetName = asset.getName();
+			            String assetType = asset.getType();
+			 
+			            if (assetType.equals("operation")) {
+			            String output = asset.getOperation().getOutputmessage();
+			            String input = asset.getOperation().getInputmessage();
+			 
+			            xml += ("<wsag:ServiceDescriptionTerm wsag:Name=\""
+			                + SDTID
+			                + "\" wsag:ServiceName=\""
+			                + assetName
+			                + "\"> "
+			                + "    <wsag:Type>InternalOperation</wsag:Type> "
+			                + "    <any xmlns=\"http://www.w3.org/2001/XMLSchema\">  "
+			                + "        <annotation> "
+			                + "            <documentation> "
+			                + "                <wsdl:Definition name=\" "
+			                + assetName
+			                + "\"> "
+			                + "<message name=\"" + input + "\"> ");
+			 
+			            for (Input IN : asset.getOperation().getInputs()) {
+			                String inputParameterName = IN.getName();
+			                String inputParameterType = IN.getType();
+			 
+			                xml += ("<part name=\""
+			                    + inputParameterName + "\" type=\""
+			                    + inputParameterType + "/> ");
+			 
+			            }
+			 
+			            xml += ("            </message> "
+			                + "                    <message name=\""
+			                + output + "\"> ");
+			 
+			            for (uk.ac.city.toreador.rest.api.entities.Output OUT
+			                 : asset.getOperation().getOutputs()) {
+			                // for (String InputParameters : Inputs) {
+			                String outputParameterName = OUT.getName();
+			                String outputParameterType = OUT.getType();
+			 
+			                xml += ("<part name=\""
+			                    + outputParameterName + "\" type=\""
+			                    + outputParameterType + "/> ");
+			            }
+			 
+			            xml += (" </message> "
+			                + "                    <portType name=\""
+			                + assetName
+			                + "_PortType\"> "
+			                + "                        <operation name=\""
+			                + assetName
+			                + "Result\"> "
+			                + "                            <input message=\""
+			                + input
+			                + "\"/> "
+			                + "                            <output message=\""
+			                + output
+			                + "\"/> "
+			                + "                        </operation> "
+			                + "                    </portType> "
+			                + "                    <binding> ... </binding> "
+			                + "                    <service name=\""
+			                + assetName
+			                + "\"> "
+			                + "                        <port binding=\"tns:"
+			                + assetName
+			                + "_Binding\" "
+			                + "                            name=\""
+			                + assetName
+			                + "_Port\"> </port> "
+			                + "                    </service> "
+			                + "                </wsdl:Definition> "
+			                + "            </documentation> "
+			                + "        </annotation> "
+			                + "    </any> "
+			                + "</wsag:ServiceDescriptionTerm>");
+			            } else if (assetType.equals("input")
+			                   | assetType.equals("output")) {
+			            String ParamType = "";
+			 
+			            xml += (" <wsag:ServiceDescriptionTerm wsag:Name=\""
+			                + SDTID
+			                + "\" wsag:ServiceName=\""
+			                + assetName
+			                + "\"> "
+			                + "   <wsag:Type>DataModel</wsag:Type> "
+			                + "   <any xmlns=\"http://www.w3.org/2001/XMLSchema\">  "
+			                + "       <annotation> "
+			                + "           <documentation> "
+			                + "               <wsdl:types> "
+			                + "                   <ComplexType name=\""
+			                + assetName
+			                + "\"> "
+			                + "                       <sequence> "
+			                + "                           <element name=\""
+			                + assetName + "\" type=\"" +
+			                // if type is input get the type of the
+			                // input parameter
+			                (assetType.equals("input") /*) != null */ /* XXX */
+			                 ? asset.getInput().getType()
+			                 // else, if type is output get the type of the
+			                 // output parameter
+			                 : asset.getOutput().getType())
+			                + "\"/> "
+			                + "                       </sequence> "
+			                + "                   </ComplexType> "
+			                + "                </wsdl:types>  "
+			                + "            </documentation> "
+			                + "        </annotation> "
+			                + "    </any> "
+			                + "</wsag:ServiceDescriptionTerm>");
+			            }
+			 
+			            String GTname = asset.getName() + "_"
+			            + p.getSecurityProperty().getName();
+			 
+			            String SecurityProperty =
+			            p.getSecurityProperty().getName();
+			            String Asset = asset.getName();
+			            String rate = p.getRate();
+			 
+			            xml +=
+			            ("<wsag:GuaranteeTerm wsag:Name=\""
+			             + GTname
+			             + "\" wsag:Obligated=\"ServiceProvider\">"
+			             + "             <wsag:ServiceLevelObjective> "
+			             + "                 <wsag:CustomServiceLevel> "
+			             + "                     <wsag:DeclarativeLevel> "
+			             + "                         <wsag:SLO_Category>"
+			             + SecurityProperty
+			             + "</wsag:SLO_Category> "
+			             + "                         <wsag:ServiceAsset>SDT1/wsdl:definition/portType/"
+			             + "/"
+			             + Asset
+			             + "</wsag:ServiceAsset>"
+			             + "                     </wsag:DeclarativeLevel> "
+			             + "                     <wsag:ProceduralLevel> "
+			             + "                         <wsag:SLOTemplate wsag:Name=\""
+			             + SecurityProperty
+			             + "\"> "
+			             + "                             <wsag:SLOTemplateParameters> " /* <-- Not needed for validation project. */
+			             /* <-- Needed for monitoring project. */
+			             + "                                 <wsag:SLOTemplateParameter name=\""
+			             + "\" "
+			             + "                                     value=\""
+			             + "\"/>  "
+			             + "                                 <wsag:SLOTemplateParameter name=\"Metric\" value=\""
+			             + "\"/>  "
+			             + "                             </wsag:SLOTemplateParameters> "
+			             + "                         </wsag:SLOTemplate> "
+			             + "                         <wsag:Assertion ID=\""
+			             + GTname
+			             + "\">  "
+			             + "                             <InterfaceDeclr> "
+			             + "                                 <ID></ID> "
+			             + "                                 <ProviderRef></ProviderRef> "
+			             + "                                 <Interface> "
+			             + "                                     <InterfaceRef> "
+			             + "                                         <InterfaceLocation></InterfaceLocation> "
+			             + "                                     </InterfaceRef> "
+			             + "                                 </Interface> "
+			             + "                             </InterfaceDeclr> "
+			             + "                             <VariableDeclr> "
+			             + "                                 <varName></varName> "
+			             + "                                 <varType></varType> "
+			             + "                             </VariableDeclr> "
+			             + "                             <Guaranteed ID=\"\" type=\"\"> "
+			             + "                                 <quantification> "
+			             + "                                     <quantifier>forall</quantifier> "
+			             + "                                     <timeVariable> "
+			             + "                                         <varName></varName> " /* XXX - what's this nameless variable????? */
+			             + "                                         <varType></varType> "
+			             + "                                     </timeVariable> "
+			             + "                                 </quantification> "
+			             + "                                 <postcondition> "
+			             + "                                     <atomicCondition> "
+			             + "                                         <eventCondition> "
+			             + "                                             <event> "
+			             + "                                                 <eventID> "
+			             + "                                                     <varName></varName> " /* XXX - what's this nameless variable????? */
+			             + "                                                 </eventID> "
+			             + "                                             </event> "
+			             + "                                         </eventCondition> "
+			             + "                                     </atomicCondition> "
+			             + "                                 </postcondition> "
+			             + "                             </Guaranteed> "
+			             + "                         </wsag:Assertion> "
+			             + "                     </wsag:ProceduralLevel> "
+			             + "                 </wsag:CustomServiceLevel> "
+			             + "             </wsag:ServiceLevelObjective> "
+			             + "             <wsag:BusinessValueList> "
+			             + "                 <wsag:CustomBusinessValue> ");
+			 
+			            for (GuardedAction gaction : p.getGuardedActions()) {
+			            String guard = gaction.getGuard();
+			            Integer PenaltyValue = gaction.getPenalty();
+			            xml +=
+			                ("              <wsag:GuardedAction> "
+			                 + ((gaction.getAction().equals("RENEGOTIATE"))
+			                ? "<wsag:ReNegotiate/>"
+			                : ((gaction.getAction().equals("PENALTY"))
+			                   ? ("<wsag:Penalty> "
+			                      + "<wsag:Value>"
+			                      + PenaltyValue
+			                      + "</wsag:Value>"
+			                      + "<wsag:ValueUnit>GBP</wsag:ValueUnit>" + "</wsag:Penalty>")
+			                   : ("                     <wsag:Other> "
+			                      + "                         <wsag:ActionName>"
+			                      + gaction.getName()
+			                      + "</wsag:ActionName> " + "                     </wsag:Other> ")))
+			                 + "                         <wsag:ValueExpr> "
+			                 + guard
+			                 + "                         </wsag:ValueExpr> "
+			                 + "                     </wsag:GuardedAction> ");
+			            }
+			 
+			            xml += ("                     <wsag:Rate> <asrt:" + p.getTimeunit() + ">"
+			                +  rate + "</asrt:" + p.getTimeunit() + "></wsag:Rate> "
+			                + "                 </wsag:CustomBusinessValue> "
+			                + "             </wsag:BusinessValueList> "
+			                + "         </wsag:GuaranteeTerm>");
+			        }
+			        }
+			    }
+			    
+			    xml += ("        </wsag:All> " + "</wsag:Terms> "
+			            + "</wsag:AgreementOffer>");
+	 
+			 project.setWsagreement(xml.getBytes());
+			 project.setStatus("CREATED");
+			 projectsRepository.save(project);
+			
+			 /*
+			 * Translate the WS Agreement, create the prism model and store it into the
+			 database
+			 */
+			 InputStream file = IOUtils.toInputStream(xml);
+			 Translate tr = new Translate();
+			
+			 String[] results = tr.translateSLAtoPrismAndLisp(file);
+			 //log.info(results[0]); // The Prism model
+			 //log.info(results[1]); // The Lisp code
+			
+			 byte[] model = results[0].getBytes();
+			
+			 project.setModel(model);
+			 projectsRepository.save(project);
+			
+			 return new ResponseEntity<Project>(HttpStatus.OK);
+		
+		 } catch (Exception e) {
+			 e.printStackTrace();
+			 
+			//log.error(e.pr);
+		 	return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		 }
+	 }
+
+	/*
+	 * This method creates a new validation project and stores it in the database
+	 */
+	@Transactional
+	@RequestMapping(value = "/rest/api/projects/validation/{pid}/uploadtest", method = RequestMethod.POST, headers = "content-type=multipart/*")
+	public ResponseEntity<?> uploadTestFile(@PathVariable Long pid, @RequestParam("files") MultipartFile[] files) {
+
+		for (MultipartFile file : files) {
+			log.info(file.getOriginalFilename() + " - " + file.getName() + " - " + file.getSize());
+		}
+
+		return new ResponseEntity<Project>(HttpStatus.CREATED);
+	}
+
+	/*
+	 * This method updates the asset of a validation project and stores it in the
 	 * database
 	 */
-	@ApiOperation(value = "Create a new model and associate it with a validation project and store it in the database", nickname = "createModelForValidationProject", response = ValidationProject.class)
+	@ApiOperation(value = "Update the asset of validation project and store it in the database", nickname = "createAssetSecurityPropertyPair", response = Asset.class)
 	@ApiResponses({
 			@ApiResponse(code = 404, message = "The validation project with the specified id was not found in the databse"),
 			@ApiResponse(code = 400, message = "The validation project with the id provided is not in a valid format") })
-	@RequestMapping(value = "/rest/api/projects/validation/{pid}/model", method = RequestMethod.POST, consumes = "multipart/form-data", headers = {
-			"Accept: application/pdf" })
-	public ResponseEntity<ValidationProject> postModelForValidationProject(@PathVariable Long pid,
-			@RequestParam("model") MultipartFile model) {
-
+	@RequestMapping(value = "/rest/api/users/{uid}/projects/{pid}/assetsecuritypropertypair", method = RequestMethod.POST, consumes = "application/json")
+	public ResponseEntity<?> createAssetSecurityPropertyPair(@RequestBody AssetSecurityPropertyPair assetSecurityPropertyPair) {
+		
 		try {
-
-			ValidationProject project = validationProjectRepository.findById(pid);
-			project.setModel(model.getBytes());
-			validationProjectRepository.save(project);
-			validationProjectRepository.findById(pid);
-			log.info("Model for the validation project with id " + project.getId() + " has been saved successully");
-			return new ResponseEntity<ValidationProject>(HttpStatus.OK);
-
+			assetSecurityPropertyPairsRepository.save(assetSecurityPropertyPair);
+			return new ResponseEntity<>(HttpStatus.CREATED);
 		} catch (Exception e) {
-			log.error(e.getMessage());
-			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);	
+		}
+	}
+	
+	/*
+	 * This method updates the asset of a validation project and stores it in the
+	 * database
+	 */
+	@ApiOperation(value = "Update the asset of validation project and store it in the database", nickname = "createAssetSecurityPropertyPair", response = Asset.class)
+	@ApiResponses({
+			@ApiResponse(code = 404, message = "The validation project with the specified id was not found in the databse"),
+			@ApiResponse(code = 400, message = "The validation project with the id provided is not in a valid format") })
+	@RequestMapping(value = "/rest/api/users/{uid}/projects/{pid}/guardedactions", method = RequestMethod.POST, consumes = "application/json")
+	public ResponseEntity<?> createGuardedAction(@RequestBody GuardedAction guardedAction) {
+		
+		try {
+			guardedActionsRepository.save(guardedAction);
+			return new ResponseEntity<>(HttpStatus.CREATED);
+		} catch (Exception e) {
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);	
 		}
 	}
 
 	/*
-	 * This method returns the validation project with the specified id that is
-	 * stored in the database
+	 * This method creates a new validation project and stores it in the database
 	 */
-	@ApiOperation(value = "Delete the validation project with the specified id from the database", nickname = "deleteValidationProjectById", response = ValidationProject.class)
+	@ApiOperation(value = "Upload a properties file for a validation project and store it in the database", nickname = "uploadPropertiesFile")
 	@ApiResponses({
 			@ApiResponse(code = 404, message = "The validation project with the specified id was not found in the databse"),
 			@ApiResponse(code = 400, message = "The validation project with the id provided is not in a valid format") })
-	@RequestMapping(value = "/rest/api/projects/validation/{pid}", method = RequestMethod.DELETE, produces = "application/json")
-	public ResponseEntity<?> deleteValidationProjectById(@PathVariable Long pid) {
+	@Transactional
+	@RequestMapping(value = "/rest/api/projects/validation/{pid}/properties", method = RequestMethod.POST, headers = "content-type=multipart/*")
+	public ResponseEntity<?> uploadPropertiesFile(@PathVariable Integer pid, @RequestParam("file") MultipartFile file) {
 
 		try {
-			ValidationProject p = validationProjectRepository.findById(pid);
 
-			if (p != null) {
-				validationProjectRepository.delete(p);
-				log.info("Deleted validation project with id:" + pid);
-				return new ResponseEntity<>(HttpStatus.OK);
+			Project project = projectsRepository.findOne(pid);
+			if (project != null) {
+				project.setProperties(file.getBytes());
+				projectsRepository.save(project);
+				return new ResponseEntity<Project>(HttpStatus.CREATED);
 			} else {
-				log.info("Validation project with id:" + pid + " was not found and therefore can not be deleted");
-				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+				return new ResponseEntity<Project>(HttpStatus.NOT_FOUND);
 			}
+
 		} catch (Exception e) {
 			log.error(e.getMessage());
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-
 }
