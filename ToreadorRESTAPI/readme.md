@@ -9,7 +9,7 @@ The __TOREADOR REST API__ is a collection of REST services that allows the execu
 #### Set up the MySQL database
 1. Install the MySQL server
 2. Create a user with __{userame}__ and __{password}__
-3. Create an empty schema with name __toreador__. Make sure you use this very name for the schema. Make sure that the user can connect remotely to the MySQL server. It might be necessary to grant the user the appropriate right to allow remote connections
+3. Create an empty schema with name __toreador__. Make sure you use this very name for the schema. Also verify that the user can connect remotely to the MySQL server. It might be necessary to grant the user the appropriate right to allow remote connections
 #### Set up the project
 4. clone the project locally
 ```sh
