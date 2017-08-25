@@ -13,6 +13,8 @@ import javax.persistence.ManyToOne;
 import javax.persistence.Table;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 @Entity
@@ -72,7 +74,8 @@ public class GuardedAction implements java.io.Serializable {
 	public void setAction(String action) {
 		this.action = action;
 	}
-
+	
+	@JsonInclude(Include.ALWAYS)
 	@Column(name = "penalty")
 	public Integer getPenalty() {
 		return this.penalty;
