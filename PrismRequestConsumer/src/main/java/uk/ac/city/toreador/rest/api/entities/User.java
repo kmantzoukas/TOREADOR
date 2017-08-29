@@ -1,10 +1,10 @@
-package uk.ac.city.toreador.entities;
+package uk.ac.city.toreador.rest.api.entities;
 
-import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.List;
+import static javax.persistence.GenerationType.IDENTITY;
 
-import javax.persistence.CascadeType;
+import java.util.HashSet;
+import java.util.Set;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
@@ -13,71 +13,90 @@ import javax.persistence.Id;
 import javax.persistence.OneToMany;
 import javax.persistence.Table;
 
-import uk.ac.city.toreador.PrismRequest;
-
 @Entity
 @Table(name = "users", catalog = "toreador")
-public class User implements Serializable{
-	
-	private static final long serialVersionUID = 7868533363937836866L;
-	
-	@Id
-	@GeneratedValue
-	@Column(name="id", unique=true, nullable=false)
-	private Long id;
-	@Column(name="name", nullable=false)
+public class User implements java.io.Serializable {
+
+	private Integer id;
 	private String name;
-	@Column(name="surname", nullable=false)
 	private String surname;
-	@Column(name="username", nullable=false)
 	private String username;
-	@Column(name="password", nullable=false)
 	private String password;
-	
-	@OneToMany(mappedBy = "user", fetch=FetchType.EAGER, cascade = {CascadeType.PERSIST, CascadeType.MERGE})
-	private List<PrismRequest> prismRequests = new ArrayList<PrismRequest>();
-	
-	public Long getId() {
-		return id;
+	private Set<Project> projects = new HashSet<Project>(0);
+
+	public User() {
 	}
-	public void setId(Long id) {
+
+	public User(String name, String surname, String username, String password) {
+		this.name = name;
+		this.surname = surname;
+		this.username = username;
+		this.password = password;
+	}
+
+	public User(String name, String surname, String username, String password, Set<Project> projects) {
+		this.name = name;
+		this.surname = surname;
+		this.username = username;
+		this.password = password;
+		this.projects = projects;
+	}
+
+	@Id
+	@GeneratedValue(strategy = IDENTITY)
+
+	@Column(name = "id", unique = true, nullable = false)
+	public Integer getId() {
+		return this.id;
+	}
+
+	public void setId(Integer id) {
 		this.id = id;
 	}
+
+	@Column(name = "name", nullable = false, length = 45)
 	public String getName() {
-		return name;
+		return this.name;
 	}
+
 	public void setName(String name) {
 		this.name = name;
 	}
+
+	@Column(name = "surname", nullable = false, length = 45)
 	public String getSurname() {
-		return surname;
+		return this.surname;
 	}
+
 	public void setSurname(String surname) {
 		this.surname = surname;
 	}
+
+	@Column(name = "username", nullable = false, length = 45)
 	public String getUsername() {
-		return username;
+		return this.username;
 	}
+
 	public void setUsername(String username) {
 		this.username = username;
 	}
+
+	@Column(name = "password", nullable = false, length = 45)
 	public String getPassword() {
-		return password;
+		return this.password;
 	}
+
 	public void setPassword(String password) {
 		this.password = password;
 	}
 	
-	public List<PrismRequest> getPrismRequests() {
-		return prismRequests;
+	@OneToMany(fetch = FetchType.LAZY, mappedBy = "user")
+	public Set<Project> getProjects() {
+		return this.projects;
 	}
-	public void setPrismRequests(List<PrismRequest> prismRequests) {
-		this.prismRequests = prismRequests;
+
+	public void setProjects(Set<Project> projects) {
+		this.projects = projects;
 	}
-	@Override
-	public String toString() {
-		return String
-				.format("User [id=%s, name=%s, surname=%s, username=%s, password=%s, prismRequests=%s]",
-						id, name, surname, username, password, prismRequests);
-	}
+
 }
