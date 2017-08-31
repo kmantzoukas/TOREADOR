@@ -1,7 +1,9 @@
 package uk.ac.city.toreador.rest.api.controllers;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -17,6 +19,7 @@ import javax.xml.xquery.XQDataSource;
 import javax.xml.xquery.XQPreparedExpression;
 import javax.xml.xquery.XQStaticContext;
 
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.json.simple.JSONArray;
@@ -24,6 +27,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -34,6 +38,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -194,17 +199,17 @@ public class ProjectRESTController {
 	public ResponseEntity<Project> translateProject(@PathVariable Integer uid, @PathVariable Integer pid) {
 		try {
 			Project project = projectsRepository.findOne(pid);
-	
+
 			/*
 			 * Create the WS Agreement from the assets and guarded actions
 			 */
 			String xml = "";
-	
+
 			Set<Asset> assets = project.getAssets();
-	
+
 			// TODO Maria you should the code below this section
 			Integer i = 1;
-	
+
 			xml += ("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"
 					+ "<wsag:AgreementOffer xmlns:wsa=\"http://www.w3.org/2005/08/addressing\" "
 					+ "xmlns:asrt=\"http://www.cumulus.org/certificate/model\" "
@@ -229,45 +234,45 @@ public class ProjectRESTController {
 					 * "            </asrt:DurationParam> " + "        </wsag:SLA_LC_Parameters> " +
 					 */
 					"    </wsag:Context> " + "    <wsag:Terms> " + "        <wsag:All>");
-	
+
 			for (Asset asset : assets) {
 				for (AssetSecurityPropertyPair p : asset.getAssetSecuritypropertyPairs()) {
 					if (p != null) {
 						String SDTID = "SDT" + (i++); // <-- fixed values
 						String assetName = asset.getName();
 						String assetType = asset.getType();
-	
+
 						if (assetType.equals("operation")) {
 							String output = asset.getOperation().getOutputmessage();
 							String input = asset.getOperation().getInputmessage();
-	
+
 							xml += ("<wsag:ServiceDescriptionTerm wsag:Name=\"" + SDTID + "\" wsag:ServiceName=\""
 									+ assetName + "\"> " + "    <wsag:Type>InternalOperation</wsag:Type> "
 									+ "    <any xmlns=\"http://www.w3.org/2001/XMLSchema\">  " + "        <annotation> "
 									+ "            <documentation> " + "                <wsdl:Definition name=\" "
 									+ assetName + "\"> " + "<message name=\"" + input + "\"> ");
-	
+
 							for (Input IN : asset.getOperation().getInputs()) {
 								String inputParameterName = IN.getName();
 								String inputParameterType = IN.getType();
-	
+
 								xml += ("<part name=\"" + inputParameterName + "\" type=\"" + inputParameterType
 										+ "/> ");
-	
+
 							}
-	
+
 							xml += ("            </message> " + "                    <message name=\"" + output
 									+ "\"> ");
-	
+
 							for (uk.ac.city.toreador.rest.api.entities.Output OUT : asset.getOperation().getOutputs()) {
 								// for (String InputParameters : Inputs) {
 								String outputParameterName = OUT.getName();
 								String outputParameterType = OUT.getType();
-	
+
 								xml += ("<part name=\"" + outputParameterName + "\" type=\"" + outputParameterType
 										+ "/> ");
 							}
-	
+
 							xml += (" </message> " + "                    <portType name=\"" + assetName
 									+ "_PortType\"> " + "                        <operation name=\"" + assetName
 									+ "Result\"> " + "                            <input message=\"" + input + "\"/> "
@@ -282,7 +287,7 @@ public class ProjectRESTController {
 									+ "</wsag:ServiceDescriptionTerm>");
 						} else if (assetType.equals("input") | assetType.equals("output")) {
 							String ParamType = "";
-	
+
 							xml += (" <wsag:ServiceDescriptionTerm wsag:Name=\"" + SDTID + "\" wsag:ServiceName=\""
 									+ assetName + "\"> " + "   <wsag:Type>DataModel</wsag:Type> "
 									+ "   <any xmlns=\"http://www.w3.org/2001/XMLSchema\">  " + "       <annotation> "
@@ -302,13 +307,13 @@ public class ProjectRESTController {
 									+ "            </documentation> " + "        </annotation> " + "    </any> "
 									+ "</wsag:ServiceDescriptionTerm>");
 						}
-	
+
 						String GTname = asset.getName() + "_" + p.getSecurityProperty().getName();
-	
+
 						String SecurityProperty = p.getSecurityProperty().getName();
 						String Asset = asset.getName();
 						String rate = p.getRate();
-	
+
 						xml += ("<wsag:GuaranteeTerm wsag:Name=\"" + GTname + "\" wsag:Obligated=\"ServiceProvider\">"
 								+ "             <wsag:ServiceLevelObjective> "
 								+ "                 <wsag:CustomServiceLevel> "
@@ -381,7 +386,7 @@ public class ProjectRESTController {
 								+ "             </wsag:ServiceLevelObjective> "
 								+ "             <wsag:BusinessValueList> "
 								+ "                 <wsag:CustomBusinessValue> ");
-	
+
 						for (GuardedAction gaction : p.getGuardedActions()) {
 							String guard = gaction.getGuard();
 							Integer PenaltyValue = gaction.getPenalty();
@@ -397,41 +402,41 @@ public class ProjectRESTController {
 									+ "                         </wsag:ValueExpr> "
 									+ "                     </wsag:GuardedAction> ");
 						}
-	
+
 						xml += ("                     <wsag:Rate> <asrt:" + p.getTimeunit() + ">" + rate + "</asrt:"
 								+ p.getTimeunit() + "></wsag:Rate> " + "                 </wsag:CustomBusinessValue> "
 								+ "             </wsag:BusinessValueList> " + "         </wsag:GuaranteeTerm>");
 					}
 				}
 			}
-	
+
 			xml += ("        </wsag:All> " + "</wsag:Terms> " + "</wsag:AgreementOffer>");
-	
+
 			project.setWsagreement(xml.getBytes());
 			project.setStatus("CREATED");
 			projectsRepository.save(project);
-	
+
 			/*
 			 * Translate the WS Agreement, create the prism model and store it into the
 			 * database
 			 */
 			InputStream file = IOUtils.toInputStream(xml);
 			Translate tr = new Translate();
-	
+
 			String[] results = tr.translateSLAtoPrismAndLisp(file);
 			// log.info(results[0]); // The Prism model
 			// log.info(results[1]); // The Lisp code
-	
+
 			byte[] model = results[0].getBytes();
-	
+
 			project.setModel(model);
 			projectsRepository.save(project);
-	
+
 			return new ResponseEntity<Project>(HttpStatus.OK);
-	
+
 		} catch (Exception e) {
 			e.printStackTrace();
-	
+
 			// log.error(e.pr);
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -454,6 +459,7 @@ public class ProjectRESTController {
 
 			p.setName(project.getName());
 			p.setPropertyCategoryCatalog(project.getPropertyCategoryCatalog());
+			p.setStatus(project.getStatus());
 
 			projectsRepository.save(p);
 			log.info("Validation project updated successully " + p);
@@ -472,7 +478,7 @@ public class ProjectRESTController {
 	@Transactional
 	@RequestMapping(value = "/rest/api/users/{uid}/projects/{pid}", method = RequestMethod.DELETE)
 	public ResponseEntity<?> deleteProjectById(@PathVariable Integer uid, @PathVariable Integer pid) {
-	
+
 		try {
 			projectsRepository.delete(pid);
 			return new ResponseEntity<>(HttpStatus.OK);
@@ -487,45 +493,42 @@ public class ProjectRESTController {
 			@ApiResponse(code = 404, message = "The validation project with the specified id was not found in the databse"),
 			@ApiResponse(code = 400, message = "The validation project with the id provided is not in a valid format") })
 	@RequestMapping(value = "/rest/api/users/{uid}/projects/{pid}/{file}", method = RequestMethod.GET)
-	public ResponseEntity<byte[]> getFileFromProjectById(@PathVariable Integer uid, @PathVariable Integer pid,
+	public ResponseEntity<String> getFileFromProjectById(@PathVariable Integer uid, @PathVariable Integer pid,
 			@PathVariable String file) {
-
+	    
 		try {
 
 			Project p = projectsRepository.findById(pid);
 			byte[] f = null;
-
+			
+			final HttpHeaders headers = new HttpHeaders();
+			
 			switch (file) {
 			case "properties":
 				f = p.getProperties();
+				headers.setContentType(MediaType.TEXT_PLAIN);
 				break;
 			case "model":
 				f = p.getModel();
+				headers.setContentType(MediaType.TEXT_PLAIN);
 				break;
 			case "validationoutput":
 				f = p.getValidationoutput();
+				headers.setContentType(MediaType.TEXT_PLAIN);
 				break;
 			case "wsagreement":
 				f = p.getWsagreement();
+				headers.setContentType(MediaType.APPLICATION_XML);
 				break;
 			default:
 				f = null;
 				break;
 			}
-
-			HttpHeaders headers = new HttpHeaders();
-			headers.setLastModified(Calendar.getInstance().getTime().getTime());
-			headers.setCacheControl("no-cache");
-			headers.setContentType(MediaType.APPLICATION_OCTET_STREAM);
-			
-
 			if (f != null) {
-				//headers.setContentLength(f.length);
-				log.info(file + " for project with id " + pid + " has been retreived successully");
-				return new ResponseEntity<byte[]>(f, headers, HttpStatus.OK);
+				return new ResponseEntity<String>(new String(f,"UTF-8"), headers, HttpStatus.OK);
 			} else {
 				log.info(file + " for project with id " + pid + " does not exist in the database");
-				return new ResponseEntity<byte[]>(HttpStatus.NOT_FOUND);
+				return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 
 		} catch (Exception e) {
@@ -539,30 +542,25 @@ public class ProjectRESTController {
 			@ApiResponse(code = 404, message = "The validation project with the specified id was not found in the databse"),
 			@ApiResponse(code = 400, message = "The validation project with the id provided is not in a valid format") })
 	@RequestMapping(value = "/rest/api/users/{uid}/projects/{pid}/compositeservices/{cid}/owls", method = RequestMethod.GET)
-	public ResponseEntity<byte[]> getOwlsFromCompositeService(@PathVariable Integer uid, @PathVariable Integer pid,
+	public ResponseEntity<String> getOwlsFromCompositeService(@PathVariable Integer uid, @PathVariable Integer pid,
 			@PathVariable Integer cid) {
 
 		try {
 
 			CompositeService cservice = compositeServicesRepository.findOne(cid);
-			
-			if(cservice != null) {
-				
-				byte[] owls = cservice.getOwls();
-				
-				HttpHeaders headers = new HttpHeaders();
-				headers.setLastModified(Calendar.getInstance().getTime().getTime());
-				headers.setCacheControl("no-cache");
-				headers.setContentType(MediaType.TEXT_XML);
-				//headers.setContentLength(owls.length);
-				
-				log.info("OWL-S for composite service with id " + cservice.getId() + " has been retreived successully");
-				return new ResponseEntity<byte[]>(owls, headers, HttpStatus.OK);
-			}else {
-				return new ResponseEntity<byte[]>(HttpStatus.NOT_FOUND);
-			}
 
-			
+			if (cservice != null) {
+
+				byte[] owls = cservice.getOwls();
+
+				HttpHeaders headers = new HttpHeaders();
+				headers.setContentType(MediaType.APPLICATION_XML);
+
+				log.info("OWL-S for composite service with id " + cservice.getId() + " has been retreived successully");
+				return new ResponseEntity<String>(new String(owls,"UTF-8"), headers, HttpStatus.OK);
+			} else {
+				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			}
 
 		} catch (Exception e) {
 			log.error(e.getMessage());
@@ -575,34 +573,28 @@ public class ProjectRESTController {
 			@ApiResponse(code = 404, message = "The validation project with the specified id was not found in the databse"),
 			@ApiResponse(code = 400, message = "The validation project with the id provided is not in a valid format") })
 	@RequestMapping(value = "/rest/api/users/{uid}/projects/{pid}/compositeservices/{cid}/atomicservices/{aid}", method = RequestMethod.GET)
-	public ResponseEntity<byte[]> getOwlFromAtomicService(@PathVariable Integer uid, @PathVariable Integer pid,
+	public ResponseEntity<String> getOwlFromAtomicService(@PathVariable Integer uid, @PathVariable Integer pid,
 			@PathVariable Integer cid, @PathVariable Integer aid) {
 
 		try {
 
 			AtomicService aservice = atomicServicesRepository.findOne(aid);
-			
-			if(aservice != null) {
-				
-				byte[] owl = aservice.getOwl();
-				
-				HttpHeaders headers = new HttpHeaders();
-				headers.setLastModified(Calendar.getInstance().getTime().getTime());
-				headers.setCacheControl("no-cache");
-				headers.setContentType(MediaType.TEXT_XML);
-				//headers.setContentLength(owl.length);
 
+			if (aservice != null) {
+
+				byte[] owl = aservice.getOwl();
+
+				HttpHeaders headers = new HttpHeaders();
+				headers.setContentType(MediaType.APPLICATION_XML);
 				log.info("OWL for atomic service with id " + aservice.getId() + " has been retreived successully");
-				return new ResponseEntity<byte[]>(owl, headers, HttpStatus.OK);
-			}else {
-				return new ResponseEntity<byte[]>(HttpStatus.NOT_FOUND);
+				return new ResponseEntity<String>(new String(owl,"UTF-8"), headers, HttpStatus.OK);
+			} else {
+				return new ResponseEntity<String>(HttpStatus.NOT_FOUND);
 			}
-			
-			
 
 		} catch (Exception e) {
 			log.error(e.getMessage());
-			return new ResponseEntity<byte[]>(HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -612,24 +604,26 @@ public class ProjectRESTController {
 			@ApiResponse(code = 400, message = "The validation project with the id provided is not in a valid format") })
 	@Transactional
 	@RequestMapping(value = "/rest/api/users/{uid}/projects/{pid}/assetsecuritypropertypair/{aid},{spid}", method = RequestMethod.DELETE)
-	public ResponseEntity<?> deleteAssetSecurityPropertyPairById(@PathVariable Integer uid, @PathVariable Integer pid,@PathVariable Integer aid, @PathVariable Integer spid) {
+	public ResponseEntity<?> deleteAssetSecurityPropertyPairById(@PathVariable Integer uid, @PathVariable Integer pid,
+			@PathVariable Integer aid, @PathVariable Integer spid) {
 
 		try {
-			assetSecurityPropertyPairsRepository.delete(new AssetsSecuritypropertiesId(aid,spid));
+			assetSecurityPropertyPairsRepository.delete(new AssetsSecuritypropertiesId(aid, spid));
 			return new ResponseEntity<>(HttpStatus.OK);
 		} catch (Exception e) {
 			log.error(e.getMessage());
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
-	
+
 	@ApiOperation(value = "Delete the pair of (asset,security property) with the specified ids (asset id, security property id)", nickname = "deleteAssetSecurityPropertyPairById")
 	@ApiResponses({
 			@ApiResponse(code = 404, message = "The validation project with the specified id was not found in the databse"),
 			@ApiResponse(code = 400, message = "The validation project with the id provided is not in a valid format") })
 	@Transactional
 	@RequestMapping(value = "/rest/api/users/{uid}/projects/{pid}/assetsecuritypropertypair/{aid},{spid}/guardedactions/{gid}", method = RequestMethod.DELETE)
-	public ResponseEntity<?> deleteGuardedActionById(@PathVariable Integer uid, @PathVariable Integer pid,@PathVariable Integer aid, @PathVariable Integer spid, @PathVariable Integer gid) {
+	public ResponseEntity<?> deleteGuardedActionById(@PathVariable Integer uid, @PathVariable Integer pid,
+			@PathVariable Integer aid, @PathVariable Integer spid, @PathVariable Integer gid) {
 
 		try {
 			guardedActionsRepository.delete(gid);
@@ -643,14 +637,50 @@ public class ProjectRESTController {
 	/*
 	 * This method creates a new validation project and stores it in the database
 	 */
-	@ApiOperation(value = "Create a new validation project and store it in the database", nickname = "uploadServiceModel", response = Project.class)
+	@ApiOperation(value = "Upload a properties file for a validation project and store it in the database", nickname = "uploadServiceModelItem")
 	@ApiResponses({
 			@ApiResponse(code = 404, message = "The validation project with the specified id was not found in the databse"),
 			@ApiResponse(code = 400, message = "The validation project with the id provided is not in a valid format") })
 	@Transactional
-	@RequestMapping(value = "/rest/api/users/{uid}/projects/{pid}/servicemodel", method = RequestMethod.POST, headers = "content-type=multipart/*")
+	@RequestMapping(value = "/rest/api/users/{uid}/projects/{pid}/servicemodelitem", method = RequestMethod.POST, headers = "content-type=multipart/*")
+	public ResponseEntity<String> uploadServiceModelItem(@PathVariable Integer uid, @PathVariable Integer pid,
+			@RequestParam("file") MultipartFile file) {
+
+		try {
+
+			Project project = projectsRepository.findOne(pid);
+			if (project != null) {
+
+				File tempdir = Files.createTempDir();
+				InputStream input = file.getInputStream();
+				File tmpfile = new File(tempdir.getAbsolutePath() + "/" + file.getOriginalFilename());
+				OutputStream out = new FileOutputStream(tmpfile);
+				IOUtils.copy(input, out);
+				input.close();
+				out.close();
+
+				return new ResponseEntity<String>(tmpfile.getAbsolutePath(), HttpStatus.CREATED);
+			} else {
+				return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+			}
+
+		} catch (Exception e) {
+			log.error(e.getMessage());
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	/*
+	 * This method creates a new validation project and stores it in the database
+	 */
+	@ApiOperation(value = "Create a new validation project and store it in the database", nickname = "uploadServiceModel")
+	@ApiResponses({
+			@ApiResponse(code = 404, message = "The validation project with the specified id was not found in the databse"),
+			@ApiResponse(code = 400, message = "The validation project with the id provided is not in a valid format") })
+	@Transactional
+	@RequestMapping(value = "/rest/api/users/{uid}/projects/{pid}/servicemodel", method = RequestMethod.POST)
 	public ResponseEntity<Project> uploadServiceModel(@PathVariable Integer uid, @PathVariable Integer pid,
-			@RequestParam("files") MultipartFile[] files) {
+			@RequestBody String[] paths) {
 
 		try {
 
@@ -668,16 +698,20 @@ public class ProjectRESTController {
 
 			Project project = projectsRepository.findOne(pid);
 
-			for (MultipartFile file : files) {
-				InputStream input = file.getInputStream();
-				File owls = new File(tempdir.getAbsolutePath() + "/" + file.getOriginalFilename());
-				OutputStream out = new FileOutputStream(owls);
-				IOUtils.copy(input, out);
-				input.close();
-				out.close();
+			File[] files = new File[paths.length];
+			int counter = 0;
+
+			for (String path : paths) {
+				log.info("Reading file with filename:" + path);
+				File f = new File(path.trim().replaceAll("\"", ""));
+				InputStream in = new FileInputStream(f);
+				OutputStream out = new FileOutputStream(tempdir.getAbsolutePath() + File.separatorChar + f.getName());
+				IOUtils.copy(in, out);
+				files[counter] = f;
+				counter++;
 			}
 
-			expr.bindObject(new QName("theinput"), new String(files[0].getOriginalFilename()), null);
+			expr.bindObject(new QName("theinput"), new String(files[0].getName()), null);
 			expr.bindObject(new QName("thedirectory"), tempdir.getAbsolutePath(), null);
 			query.close();
 
@@ -694,8 +728,8 @@ public class ProjectRESTController {
 			compositeService.setName((String) compositeServiceObj.get("name"));
 			compositeService.setProject(project);
 
-			compositeService.setOwls(IOUtils.toByteArray(
-					new FileInputStream(new File(tempdir.getAbsolutePath() + "/" + files[0].getOriginalFilename()))));
+			compositeService.setOwls(IOUtils.toByteArray(new FileInputStream(
+					new File(tempdir.getAbsolutePath() + File.separatorChar + files[0].getName()))));
 
 			compositeServicesRepository.save(compositeService);
 
@@ -709,8 +743,9 @@ public class ProjectRESTController {
 				AtomicService atomicService = new AtomicService();
 				atomicService.setName((String) atomicServiceObj.get("serviceName"));
 				atomicService.setCompositeService(compositeService);
-				atomicService.setOwl(IOUtils.toByteArray(new FileInputStream(new File(tempdir.getAbsolutePath() + "/"
-						+ ((String) atomicServiceObj.get("serviceName")).replace("Service", "") + ".owl"))));
+				atomicService.setOwl(
+						IOUtils.toByteArray(new FileInputStream(new File(tempdir.getAbsolutePath() + File.separatorChar
+								+ ((String) atomicServiceObj.get("serviceName")).replace("Service", "") + ".owl"))));
 				/*
 				 * Store the newly created atomic service in the atomicService variable to use
 				 * it later on
@@ -793,8 +828,12 @@ public class ProjectRESTController {
 
 			return new ResponseEntity<Project>(HttpStatus.OK);
 
-		} catch (Exception e) {
+		} catch (FileNotFoundException e) {
 			log.error(e.getMessage());
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		} catch (Exception e) {
+			log.error(e.getCause());
+			e.printStackTrace();
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
@@ -857,7 +896,8 @@ public class ProjectRESTController {
 			@ApiResponse(code = 400, message = "The validation project with the id provided is not in a valid format") })
 	@Transactional
 	@RequestMapping(value = "/rest/api/users/{uid}/projects/{pid}/properties", method = RequestMethod.POST, headers = "content-type=multipart/*")
-	public ResponseEntity<?> uploadPropertiesFile(@PathVariable Integer uid, @PathVariable Integer pid, @RequestParam("file") MultipartFile file) {
+	public ResponseEntity<?> uploadPropertiesFile(@PathVariable Integer uid, @PathVariable Integer pid,
+			@RequestParam("file") MultipartFile file) {
 
 		try {
 
