@@ -20,6 +20,8 @@ import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
 @Entity
 @Table(name = "projects", catalog = "toreador")
@@ -99,7 +101,7 @@ public class Project implements java.io.Serializable {
 		this.name = name;
 	}
 	
-	@JsonIgnore
+	@JsonInclude(Include.ALWAYS)
 	@Column(name = "model")
 	public byte[] getModel() {
 		return this.model;
@@ -109,7 +111,7 @@ public class Project implements java.io.Serializable {
 		this.model = model;
 	}
 	
-	@JsonIgnore
+	@JsonInclude(Include.ALWAYS)
 	@Column(name = "properties")
 	public byte[] getProperties() {
 		return this.properties;
@@ -119,7 +121,7 @@ public class Project implements java.io.Serializable {
 		this.properties = properties;
 	}
 	
-	@JsonIgnore
+	@JsonInclude(Include.ALWAYS)
 	@Column(name = "validationoutput")
 	public byte[] getValidationoutput() {
 		return this.validationoutput;
@@ -157,7 +159,7 @@ public class Project implements java.io.Serializable {
 		this.propertyCategoryCatalog = propertyCategoryCatalog;
 	}
 	
-	@JsonIgnore
+	@JsonInclude(Include.ALWAYS)
 	@Column(name = "wsagreement")
 	public byte[] getWsagreement() {
 		return this.wsagreement;
