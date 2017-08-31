@@ -1,9 +1,13 @@
 package uk.ac.city.toreador.rest.api.configuration;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.context.annotation.Bean;
+import org.springframework.http.MediaType;
+import org.springframework.http.converter.ByteArrayHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
@@ -33,10 +37,27 @@ public class SpringWebConfiguration extends WebMvcConfigurerAdapter {
 		jsonConverter.setObjectMapper(objectMapper);
 		return jsonConverter;
 	}
-
+	
+	@Bean
+	public ByteArrayHttpMessageConverter byteArrayHttpMessageConverter() {
+	    ByteArrayHttpMessageConverter arrayHttpMessageConverter = new ByteArrayHttpMessageConverter();
+	    arrayHttpMessageConverter.setSupportedMediaTypes(getSupportedMediaTypes());
+	    return arrayHttpMessageConverter;
+	}
+	 
+	private List<MediaType> getSupportedMediaTypes() {
+	    List<MediaType> list = new ArrayList<MediaType>();
+	    list.add(MediaType.TEXT_PLAIN);
+	    list.add(MediaType.APPLICATION_OCTET_STREAM);
+	    list.add(MediaType.TEXT_XML);
+	    return list;
+	}
+	
 	@Override
 	public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
 		converters.add(customJackson2HttpMessageConverter());
+		converters.add(new StringHttpMessageConverter());
+		converters.add(byteArrayHttpMessageConverter());
 		super.configureMessageConverters(converters);
 	}
 
